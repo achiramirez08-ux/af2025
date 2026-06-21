@@ -137,12 +137,12 @@
     <!-- Rubro -->
     <div class="text-[9px] text-green-200 uppercase font-bold tracking-wider mb-1">Rubro</div>
     <div class="flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
-      <button onclick="filtrarPorRubro('todos')" id="f-todos" class="rubro-tab on">Todos</button>
-      <button onclick="filtrarPorRubro('Soja')" id="f-Soja" class="rubro-tab off">🟡 Soja</button>
-      <button onclick="filtrarPorRubro('Maíz')" id="f-Maíz" class="rubro-tab off">🟢 Maíz</button>
-      <button onclick="filtrarPorRubro('Insumos')" id="f-Insumos" class="rubro-tab off">🟣 Insumos</button>
-      <button onclick="filtrarPorRubro('Azúcar')" id="f-Azúcar" class="rubro-tab off">🔴 Azúcar</button>
-      <button onclick="filtrarPorRubro('Arroz')" id="f-Arroz" class="rubro-tab off">🌾 Arroz</button>
+      <button onclick="filtrarPorRubro('todos')" data-rubro="todos" class="rubro-tab on">Todos</button>
+      <button onclick="filtrarPorRubro('Soja')" data-rubro="Soja" class="rubro-tab off">🟡 Soja</button>
+      <button onclick="filtrarPorRubro('Maíz')" data-rubro="Maíz" class="rubro-tab off">🟢 Maíz</button>
+      <button onclick="filtrarPorRubro('Insumos')" data-rubro="Insumos" class="rubro-tab off">🟣 Insumos</button>
+      <button onclick="filtrarPorRubro('Azúcar')" data-rubro="Azúcar" class="rubro-tab off">🔴 Azúcar</button>
+      <button onclick="filtrarPorRubro('Arroz')" data-rubro="Arroz" class="rubro-tab off">🌾 Arroz</button>
     </div>
     <!-- Zona -->
     <div class="text-[9px] text-green-200 uppercase font-bold tracking-wider mb-1">Zona</div>
@@ -221,7 +221,7 @@
   <div class="flex-1 overflow-y-auto bg-gray-50">
 
     <!-- TAB: RADIOGRAFÍA -->
-    <div id="tab-radiografia" class="tab-content active p-4 space-y-4 fade-up">
+    <div id="panel-radiografia" class="tab-content active p-4 space-y-4 fade-up">
       <div class="bg-white rounded-2xl p-4 shadow-sm">
         <div class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-3">📍 Ficha del cliente</div>
         <div id="ficha-nombre" class="text-lg font-bold text-gray-800 leading-tight mb-1"></div>
@@ -248,7 +248,7 @@
     </div>
 
     <!-- TAB: PRODUCTOS -->
-    <div id="tab-productos" class="tab-content p-4 space-y-3">
+    <div id="panel-productos" class="tab-content p-4 space-y-3">
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
         💡 Combinación seleccionada según rubro y objetivo comercial
       </div>
@@ -259,7 +259,7 @@
     </div>
 
     <!-- TAB: SPEECH -->
-    <div id="tab-speech" class="tab-content p-4 space-y-4">
+    <div id="panel-speech" class="tab-content p-4 space-y-4">
       <!-- Gancho personalizado -->
       <div id="gancho-box" class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800 hidden">
         <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">🎯 Gancho de entrada</div>
@@ -310,35 +310,35 @@
 <!-- ══════════════════════════════════════════════════════ -->
 <script>
 const EMPRESAS = [
-  {id:1,nombre:"AGROFIELD S.R.L.",corto:"AGROFIELD S.R.L.",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"981411019",email:"compras1@agrofield.com.py",dir:"AVDA. AVIADORES DEL CHACO Nº 1449",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:2,nombre:"AGROMAX INSUMOS E.A.S.",corto:"AGROMAX INSUMOS E.A.",rubros:["Maíz", "Insumos"],ubicacion:"SAN LORENZO",contacto:"Fernando Ramírez",tel:"982314446",email:"contabilidad@agromaxinsumos.com.py",dir:"AVENIDA DEL AGRONOMO CASI CERRO CORA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SAN LORENZO.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:3,nombre:"AGROVET SAN PEDRO DE JIMENEZ DE LIN, PABLINA",corto:"AGROVET SAN PEDRO DE",rubros:["Maíz"],ubicacion:"SAN LORENZO",contacto:"Fernando Ramírez",tel:"21575187",email:"agrovetsanpedro@gmail.com",dir:"SGTO SILVA NRO 837 - SAN LORENZO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SAN LORENZO.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:4,nombre:"AGROVETERINARIA AGUARAY SRL",corto:"AGROVETERINARIA AGUA",rubros:["Maíz", "Insumos"],ubicacion:"SANTA ROSA DEL AGUARAY",contacto:"Fernando Ramírez",tel:"983428043",email:"agroaguaraysrl@gmail.com",dir:"KM 320",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SANTA ROSA DEL AGUARAY.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:5,nombre:"BENITEZ FERREIRA ARSENIO DE JESUS",corto:"BENITEZ FERREIRA ARS",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"991839336",email:"fumigro@hotmail.com",dir:"JUAN DEL CASTILLO 534",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:6,nombre:"CACERES NUÑEZ IDALIA APARECIDA",corto:"CACERES NUÑEZ IDALIA",rubros:["Maíz"],ubicacion:"CONCEPCION",contacto:"Fernando Ramírez",tel:"971109797",email:"lacautivagropecuaria@gmail.com",dir:"PTE FRANCO C/ GRAL DIAZ",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. CONCEPCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:7,nombre:"CARDOZO FERNANDEZ, DARIO RUBEN",corto:"CARDOZO FERNANDEZ, D",rubros:["Maíz"],ubicacion:"ACAHAY",contacto:"Fernando Ramírez",tel:"982945210",email:"cardozodario055@gmail.com",dir:"AV. GRAL. CESAR BARRIENTOS ESQ. CANUTO TORALES",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ACAHAY.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:8,nombre:"COOPERATIVA CHORTITZER LTDA",corto:"COOPERATIVA CHORTITZ",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"983491029",email:"rosvitaf@chortitzer.com.py",dir:"MARIANO ROQUE ALONSO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:9,nombre:"COOPERATIVA FERNHEIM LTDA",corto:"COOPERATIVA FERNHEIM",rubros:["Maíz"],ubicacion:"MARIANO ROQUE ALONZO",contacto:"Fernando Ramírez",tel:"595-491-417000",email:"facturaelectronica@fernheim.com.py",dir:"AVENIDA HINDENBURG, FILADELFIA PARAGUAY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. MARIANO ROQUE ALONZO.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:10,nombre:"COOPERATIVA MULTIACTIVA NEULAND LIMITADA",corto:"COOPERATIVA MULTIACT",rubros:["Maíz"],ubicacion:"COLONIA NEULAND",contacto:"Fernando Ramírez",tel:"+595 493240312",email:"compras.sap@neuland.com.py",dir:"COLONIA NEULAND, BOQUERON - PARAGUAY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. COLONIA NEULAND.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:11,nombre:"DF CONSULTORA E.A.S. UNIPERSONAL",corto:"DF CONSULTORA E.A.S.",rubros:["Maíz"],ubicacion:"LAMBARE",contacto:"Fernando Ramírez",tel:"981459308",email:"dafe.agro25@gmail.com",dir:"TTE MARCOS NUÑEZ 2327",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LAMBARE.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:12,nombre:"DOMINGUEZ WILSON SMITH, ALEJANDRO GUILLERMO",corto:"DOMINGUEZ WILSON SMI",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"971964100",email:"pendiente",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:13,nombre:"ECOLATINA S.R.L",corto:"ECOLATINA S.R.L",rubros:["Maíz"],ubicacion:"LAMBARE",contacto:"Fernando Ramírez",tel:"213384535",email:"info@ecolatina.com.py",dir:"BRUNO GUGGIARI",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LAMBARE.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:14,nombre:"FERIA RURAL SA",corto:"FERIA RURAL SA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"21223320",email:"ferusa_fex@ferusa.com.py",dir:"QUESADA 4926 ESQ. TTE. ZOTTI.",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:15,nombre:"GIMENEZ JOSE DANIEL",corto:"GIMENEZ JOSE DANIEL",rubros:["Maíz"],ubicacion:"JOSE FALCON",contacto:"Fernando Ramírez",tel:"982648054",email:"josedanielgimenez30@gmail.com",dir:"PUERTO FALCON",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. JOSE FALCON.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:16,nombre:"GRUPO TOBIANO S.R.L",corto:"GRUPO TOBIANO S.R.L",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"981242926",email:"administracion@tobiano.com.py",dir:"DR. RAUL HEISECKE FERREIRA 213, ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:17,nombre:"INCREMENTA S.A.",corto:"INCREMENTA S.A.",rubros:["Maíz"],ubicacion:"CONCEPCION",contacto:"Fernando Ramírez",tel:"971847518",email:"incrementasa@outlook.com",dir:"PROFESOR CABRAL Y DON BOSCO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. CONCEPCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:18,nombre:"LATITUD SUR S.A",corto:"LATITUD SUR S.A",rubros:["Maíz"],ubicacion:"FILADELFIA",contacto:"Fernando Ramírez",tel:"0976-678-231",email:"diego.benedettini@latitudsursa.com",dir:"PRESIDENTE GONDRA Y PALO SANTO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. FILADELFIA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:19,nombre:"MACALOSSI ADAO",corto:"MACALOSSI ADAO",rubros:["Maíz"],ubicacion:"FILADELFIA",contacto:"Fernando Ramírez",tel:"983624402",email:"adaomacalossi123@gmail.com",dir:"CALLE CARAYA C/AROMITA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. FILADELFIA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:20,nombre:"MERELES CANO, JESSICA MARIA",corto:"MERELES CANO, JESSIC",rubros:["Maíz"],ubicacion:"LA COLMENA",contacto:"Fernando Ramírez",tel:"982274875",email:"jessicamereles10@gmail.com",dir:"KUNITO MIYAS ACA C/ RIO DE JANEIRO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LA COLMENA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:21,nombre:"NGP GROUP SA",corto:"NGP GROUP SA",rubros:["Maíz"],ubicacion:"SANTA RITA",contacto:"Fernando Ramírez",tel:"981223138",email:"roberto@ngpgroup.com.py",dir:"EUROPARQUE BLOQUE 2",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SANTA RITA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:22,nombre:"PROCESADORA Y PROVEEDURIA DE CARNES Y LACTEOS SA",corto:"PROCESADORA Y PROVEE",rubros:["Maíz"],ubicacion:"CAPIATA",contacto:"Fernando Ramírez",tel:"21511045",email:"compras@soprocal.com.py",dir:"PUENTE SANA C/ SARGENTO MAIDANA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"✅ SET #422",perfil:"Cliente del listado Agrofuturo. CAPIATA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:422},
-  {id:23,nombre:"R Y D AGROINSUMOS SRL",corto:"R Y D AGROINSUMOS SR",rubros:["Maíz", "Insumos"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"982131259",email:"raulramos.rydagroinsumossrl@gmail.com",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:24,nombre:"RAMIREZ VALIENTE, FERNANDO JOSUE",corto:"RAMIREZ VALIENTE, FE",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"971232802",email:"incopestpy@gmail.com",dir:"GUMERSINDO SOSA C/ 4 DE JULIO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:25,nombre:"REYES AQUINO, LORENZO",corto:"REYES AQUINO, LORENZ",rubros:["Maíz"],ubicacion:"LA COLMENA",contacto:"Fernando Ramírez",tel:"983765452",email:"lorenzoreyes@hotmail.com",dir:"ITAIPU C/ 15 DE AGOSTO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LA COLMENA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:26,nombre:"S.A RURAL INDUSTRIAL Y COMERCIAL (SAR.I.C)",corto:"S.A RURAL INDUSTRIAL",rubros:["Maíz"],ubicacion:"TEBICUARYMI",contacto:"Fernando Ramírez",tel:"985355615",email:"forestal@saric.com.py",dir:"ESTANCIA COLONIA.I TEBICUARY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. TEBICUARYMI.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:27,nombre:"TAFIREL PARAGUAY SA",corto:"TAFIREL PARAGUAY SA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"983482808",email:"administracion.py@tafirel.com",dir:"AVIADORES DEL CHACO 2050, WTC, TORRE 3, PISO 9.",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"✅ SET #149",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:149},
-  {id:28,nombre:"VICTOR ROA",corto:"VICTOR ROA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"Fernando Ramírez",tel:"0992-806-214",email:"aroa@agrofuturo.com.py",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
-  {id:29,nombre:"YURUMI SRL",corto:"YURUMI SRL",rubros:["Maíz"],ubicacion:"COLONIA NEULAND",contacto:"Fernando Ramírez",tel:"986979344",email:"frank.yurumi@gmail.com",dir:"RUTA 16 C/ AV. SAMU´U",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. COLONIA NEULAND.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:1,nombre:"AGROFIELD S.R.L.",corto:"AGROFIELD S.R.L.",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"981411019",email:"compras1@agrofield.com.py",dir:"AVDA. AVIADORES DEL CHACO Nº 1449",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:2,nombre:"AGROMAX INSUMOS E.A.S.",corto:"AGROMAX INSUMOS E.A.",rubros:["Maíz", "Insumos"],ubicacion:"SAN LORENZO",contacto:"",tel:"982314446",email:"contabilidad@agromaxinsumos.com.py",dir:"AVENIDA DEL AGRONOMO CASI CERRO CORA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SAN LORENZO.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:3,nombre:"AGROVET SAN PEDRO DE JIMENEZ DE LIN, PABLINA",corto:"AGROVET SAN PEDRO DE",rubros:["Maíz"],ubicacion:"SAN LORENZO",contacto:"",tel:"21575187",email:"agrovetsanpedro@gmail.com",dir:"SGTO SILVA NRO 837 - SAN LORENZO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SAN LORENZO.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:4,nombre:"AGROVETERINARIA AGUARAY SRL",corto:"AGROVETERINARIA AGUA",rubros:["Maíz", "Insumos"],ubicacion:"SANTA ROSA DEL AGUARAY",contacto:"",tel:"983428043",email:"agroaguaraysrl@gmail.com",dir:"KM 320",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SANTA ROSA DEL AGUARAY.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:5,nombre:"BENITEZ FERREIRA ARSENIO DE JESUS",corto:"BENITEZ FERREIRA ARS",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"991839336",email:"fumigro@hotmail.com",dir:"JUAN DEL CASTILLO 534",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:6,nombre:"CACERES NUÑEZ IDALIA APARECIDA",corto:"CACERES NUÑEZ IDALIA",rubros:["Maíz"],ubicacion:"CONCEPCION",contacto:"",tel:"971109797",email:"lacautivagropecuaria@gmail.com",dir:"PTE FRANCO C/ GRAL DIAZ",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. CONCEPCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:7,nombre:"CARDOZO FERNANDEZ, DARIO RUBEN",corto:"CARDOZO FERNANDEZ, D",rubros:["Maíz"],ubicacion:"ACAHAY",contacto:"",tel:"982945210",email:"cardozodario055@gmail.com",dir:"AV. GRAL. CESAR BARRIENTOS ESQ. CANUTO TORALES",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ACAHAY.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:8,nombre:"COOPERATIVA CHORTITZER LTDA",corto:"COOPERATIVA CHORTITZ",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"983491029",email:"rosvitaf@chortitzer.com.py",dir:"MARIANO ROQUE ALONSO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:9,nombre:"COOPERATIVA FERNHEIM LTDA",corto:"COOPERATIVA FERNHEIM",rubros:["Maíz"],ubicacion:"MARIANO ROQUE ALONZO",contacto:"",tel:"595-491-417000",email:"facturaelectronica@fernheim.com.py",dir:"AVENIDA HINDENBURG, FILADELFIA PARAGUAY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. MARIANO ROQUE ALONZO.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:10,nombre:"COOPERATIVA MULTIACTIVA NEULAND LIMITADA",corto:"COOPERATIVA MULTIACT",rubros:["Maíz"],ubicacion:"COLONIA NEULAND",contacto:"",tel:"+595 493240312",email:"compras.sap@neuland.com.py",dir:"COLONIA NEULAND, BOQUERON - PARAGUAY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. COLONIA NEULAND.",tipo:"cooperativa",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:11,nombre:"DF CONSULTORA E.A.S. UNIPERSONAL",corto:"DF CONSULTORA E.A.S.",rubros:["Maíz"],ubicacion:"LAMBARE",contacto:"",tel:"981459308",email:"dafe.agro25@gmail.com",dir:"TTE MARCOS NUÑEZ 2327",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LAMBARE.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:12,nombre:"DOMINGUEZ WILSON SMITH, ALEJANDRO GUILLERMO",corto:"DOMINGUEZ WILSON SMI",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"971964100",email:"pendiente",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:13,nombre:"ECOLATINA S.R.L",corto:"ECOLATINA S.R.L",rubros:["Maíz"],ubicacion:"LAMBARE",contacto:"",tel:"213384535",email:"info@ecolatina.com.py",dir:"BRUNO GUGGIARI",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LAMBARE.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:14,nombre:"FERIA RURAL SA",corto:"FERIA RURAL SA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"21223320",email:"ferusa_fex@ferusa.com.py",dir:"QUESADA 4926 ESQ. TTE. ZOTTI.",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:15,nombre:"GIMENEZ JOSE DANIEL",corto:"GIMENEZ JOSE DANIEL",rubros:["Maíz"],ubicacion:"JOSE FALCON",contacto:"",tel:"982648054",email:"josedanielgimenez30@gmail.com",dir:"PUERTO FALCON",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. JOSE FALCON.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:16,nombre:"GRUPO TOBIANO S.R.L",corto:"GRUPO TOBIANO S.R.L",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"981242926",email:"administracion@tobiano.com.py",dir:"DR. RAUL HEISECKE FERREIRA 213, ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:17,nombre:"INCREMENTA S.A.",corto:"INCREMENTA S.A.",rubros:["Maíz"],ubicacion:"CONCEPCION",contacto:"",tel:"971847518",email:"incrementasa@outlook.com",dir:"PROFESOR CABRAL Y DON BOSCO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. CONCEPCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:18,nombre:"LATITUD SUR S.A",corto:"LATITUD SUR S.A",rubros:["Maíz"],ubicacion:"FILADELFIA",contacto:"",tel:"0976-678-231",email:"diego.benedettini@latitudsursa.com",dir:"PRESIDENTE GONDRA Y PALO SANTO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. FILADELFIA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:19,nombre:"MACALOSSI ADAO",corto:"MACALOSSI ADAO",rubros:["Maíz"],ubicacion:"FILADELFIA",contacto:"",tel:"983624402",email:"adaomacalossi123@gmail.com",dir:"CALLE CARAYA C/AROMITA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. FILADELFIA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:20,nombre:"MERELES CANO, JESSICA MARIA",corto:"MERELES CANO, JESSIC",rubros:["Maíz"],ubicacion:"LA COLMENA",contacto:"",tel:"982274875",email:"jessicamereles10@gmail.com",dir:"KUNITO MIYAS ACA C/ RIO DE JANEIRO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LA COLMENA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:21,nombre:"NGP GROUP SA",corto:"NGP GROUP SA",rubros:["Maíz"],ubicacion:"SANTA RITA",contacto:"",tel:"981223138",email:"roberto@ngpgroup.com.py",dir:"EUROPARQUE BLOQUE 2",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. SANTA RITA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:22,nombre:"PROCESADORA Y PROVEEDURIA DE CARNES Y LACTEOS SA",corto:"PROCESADORA Y PROVEE",rubros:["Maíz"],ubicacion:"CAPIATA",contacto:"",tel:"21511045",email:"compras@soprocal.com.py",dir:"PUENTE SANA C/ SARGENTO MAIDANA",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"✅ SET #422",perfil:"Cliente del listado Agrofuturo. CAPIATA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:422},
+  {id:23,nombre:"R Y D AGROINSUMOS SRL",corto:"R Y D AGROINSUMOS SR",rubros:["Maíz", "Insumos"],ubicacion:"ASUNCION",contacto:"",tel:"982131259",email:"raulramos.rydagroinsumossrl@gmail.com",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"distribuidora",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:24,nombre:"RAMIREZ VALIENTE, FERNANDO JOSUE",corto:"RAMIREZ VALIENTE, FE",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"971232802",email:"incopestpy@gmail.com",dir:"GUMERSINDO SOSA C/ 4 DE JULIO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:25,nombre:"REYES AQUINO, LORENZO",corto:"REYES AQUINO, LORENZ",rubros:["Maíz"],ubicacion:"LA COLMENA",contacto:"",tel:"983765452",email:"lorenzoreyes@hotmail.com",dir:"ITAIPU C/ 15 DE AGOSTO",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. LA COLMENA.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:26,nombre:"S.A RURAL INDUSTRIAL Y COMERCIAL (SAR.I.C)",corto:"S.A RURAL INDUSTRIAL",rubros:["Maíz"],ubicacion:"TEBICUARYMI",contacto:"",tel:"985355615",email:"forestal@saric.com.py",dir:"ESTANCIA COLONIA.I TEBICUARY",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. TEBICUARYMI.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:27,nombre:"TAFIREL PARAGUAY SA",corto:"TAFIREL PARAGUAY SA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"983482808",email:"administracion.py@tafirel.com",dir:"AVIADORES DEL CHACO 2050, WTC, TORRE 3, PISO 9.",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"✅ SET #149",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:149},
+  {id:28,nombre:"VICTOR ROA",corto:"VICTOR ROA",rubros:["Maíz"],ubicacion:"ASUNCION",contacto:"",tel:"0992-806-214",email:"aroa@agrofuturo.com.py",dir:"ASUNCION",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. ASUNCION.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
+  {id:29,nombre:"YURUMI SRL",corto:"YURUMI SRL",rubros:["Maíz"],ubicacion:"COLONIA NEULAND",contacto:"",tel:"986979344",email:"frank.yurumi@gmail.com",dir:"RUTA 16 C/ AV. SAMU´U",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Cliente activo Fernando",perfil:"Cliente del listado Agrofuturo. COLONIA NEULAND.",tipo:"productor",prioridad:5,riesgo:"✅ ACTIVO",setRank:0},
   {id:30,nombre:"Copagra",corto:"Copagra",rubros:["Maíz"],ubicacion:"PARAGUAY",contacto:"",tel:"No confirmado",email:"",dir:"",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Potencial identificado",perfil:"Cooperativa/agroindustrial",tipo:"productor",prioridad:3,riesgo:"🟡 POTENCIAL",setRank:0},
   {id:31,nombre:"Produza",corto:"Produza",rubros:["Maíz"],ubicacion:"PARAGUAY",contacto:"",tel:"+595 984 255 830 / (061) 505 068",email:"",dir:"",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Potencial identificado",perfil:"Producción agrícola",tipo:"productor",prioridad:3,riesgo:"🟡 POTENCIAL",setRank:0},
   {id:32,nombre:"Agroser",corto:"Agroser",rubros:["Maíz"],ubicacion:"PARAGUAY",contacto:"",tel:"No encontrado público",email:"",dir:"",usd3y:0,usd22:0,usd23:0,usd24:0,tendencia:"Potencial identificado",perfil:"Servicios + producción",tipo:"productor",prioridad:3,riesgo:"🟡 POTENCIAL",setRank:0},
@@ -866,12 +866,13 @@ function getCierre(objetivo) {
 // ══════════════════════════════════════════════════════
 //  ESTADO DE LA APP
 // ══════════════════════════════════════════════════════
-let estadoApp = { empresa: null, objetivo: null, filtroRubro: 'todos' };
+let estadoApp = { empresa: null, objetivo: null, filtroRubro: 'todos', zona: 'todas', sortKey: 'prioridad', soloContacto: false };
 
 // ══════════════════════════════════════════════════════
 //  RENDER: LISTA DE EMPRESAS
 // ══════════════════════════════════════════════════════
 function renderEmpresas(lista) {
+  try {
   const cont = document.getElementById('listaEmpresas');
   const noR = document.getElementById('noResults');
   if (!lista.length) { cont.innerHTML = ''; noR.classList.remove('hidden'); return; }
@@ -887,6 +888,7 @@ function renderEmpresas(lista) {
     const estrellas = '★'.repeat(e.prioridad) + '☆'.repeat(5-e.prioridad);
     const color = tipoColors[e.tipo] || '#666';
     const tieneNota = !!localStorage.getItem('nota_'+e.id);
+    const contactoDisplay = (e.contacto && e.contacto.trim()) ? e.contacto : null;
     return `
     <div class="card-empresa bg-white p-4 cursor-pointer" onclick="seleccionarEmpresa(${e.id})">
       <div class="flex items-start justify-between mb-2">
@@ -917,32 +919,54 @@ function renderEmpresas(lista) {
   }).join('');
 }
 
+  } catch(e) { console.error('[renderEmpresas]', e); }
 function filtrarEmpresas(texto) {
-  const t = texto.toLowerCase().trim();
-  let lista = EMPRESAS;
-  if (estadoApp.filtroRubro !== 'todos') lista = lista.filter(e => e.rubros.includes(estadoApp.filtroRubro));
-  if (estadoApp.zona && estadoApp.zona !== 'todas') lista = lista.filter(e => (e.zona||'').includes(estadoApp.zona));
-  if (estadoApp.soloContacto) lista = lista.filter(e => e.contacto && e.contacto.trim() !== '' && e.contacto !== '—');
-  if (t) lista = lista.filter(e => e.nombre.toLowerCase().includes(t) || (e.corto||'').toLowerCase().includes(t) || e.ubicacion.toLowerCase().includes(t) || (e.zona||'').toLowerCase().includes(t));
-  // Sort
-  const sk = estadoApp.sortKey || 'prioridad';
-  lista = [...lista].sort((a,b) => {
-    if (sk === 'nombre') return a.nombre.localeCompare(b.nombre);
-    if (sk === 'usd3y') return (b.usd3y||0) - (a.usd3y||0);
-    return (b.prioridad||0) - (a.prioridad||0);
-  });
-  renderEmpresas(lista);
-  const fc = document.getElementById('footer-count');
-  if (fc) fc.textContent = `📊 ${lista.length} de 369 empresas`;
+  try {
+    const t = (texto||'').toLowerCase().trim();
+    let lista = EMPRESAS;
+    // Rubro filter
+    if (estadoApp.filtroRubro && estadoApp.filtroRubro !== 'todos')
+      lista = lista.filter(e => e.rubros && e.rubros.includes(estadoApp.filtroRubro));
+    // Zona filter
+    if (estadoApp.zona && estadoApp.zona !== 'todas')
+      lista = lista.filter(e => (e.zona||'').includes(estadoApp.zona));
+    // Solo con contacto
+    if (estadoApp.soloContacto)
+      lista = lista.filter(e => e.contacto && e.contacto.trim() !== '' && e.contacto !== '—' && e.contacto !== 'Fernando Ramírez');
+    // Text search
+    if (t) lista = lista.filter(e =>
+      e.nombre.toLowerCase().includes(t) ||
+      (e.corto||'').toLowerCase().includes(t) ||
+      (e.ubicacion||'').toLowerCase().includes(t) ||
+      (e.zona||'').toLowerCase().includes(t) ||
+      (e.contacto||'').toLowerCase().includes(t)
+    );
+    // Sort
+    const sk = estadoApp.sortKey || 'prioridad';
+    lista = [...lista].sort((a,b) => {
+      if (sk === 'nombre') return (a.nombre||'').localeCompare(b.nombre||'');
+      if (sk === 'usd3y') return (b.usd3y||0) - (a.usd3y||0);
+      return (b.prioridad||0) - (a.prioridad||0);
+    });
+    renderEmpresas(lista);
+    const fc = document.getElementById('footer-count');
+    if (fc) fc.textContent = `📊 ${lista.length} / 369 empresas`;
+  } catch(e) {
+    console.error('[filtrarEmpresas] Fallo en el filtrado:', e);
+    console.error('Estado actual:', JSON.stringify(estadoApp));
+  }
 }
 
 function filtrarPorRubro(rubro) {
-  estadoApp.filtroRubro = rubro;
-  ['todos','Soja','Maíz','Insumos','Azúcar','Arroz'].forEach(r => {
-    const btn = document.getElementById('f-'+r);
-    if (btn) btn.className = 'rubro-tab ' + (r === rubro ? 'on' : 'off');
-  });
-  filtrarEmpresas(document.getElementById('searchInput').value);
+  try {
+    estadoApp.filtroRubro = rubro;
+    document.querySelectorAll('[data-rubro]').forEach(btn => {
+      const r = btn.getAttribute('data-rubro');
+      if (r === rubro) { btn.classList.add('on'); btn.classList.remove('off'); }
+      else { btn.classList.remove('on'); btn.classList.add('off'); }
+    });
+    filtrarEmpresas(document.getElementById('searchInput').value);
+  } catch(e) { console.error('[filtrarPorRubro]', e); }
 }
 
 // ══════════════════════════════════════════════════════
@@ -1255,17 +1279,25 @@ filtrarPorRubro('todos');
 }
 
 function showTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.classList.toggle('active', el.id === 'tab-' + tabId);
-    if (el.id === 'tab-' + tabId) el.classList.add('fade-up');
-  });
-  document.querySelectorAll('.seg-tab').forEach(btn => {
-    const isTarget = btn.getAttribute('onclick') === `showTab('${tabId}')`;
-    btn.classList.toggle('on', isTarget);
-  });
-  // Reset notas tab style
-  const notasBtn = document.getElementById('tab-notas');
-  if (notasBtn) notasBtn.classList.remove('on');
+  try {
+    // Content panels (id="panel-*")
+    document.querySelectorAll('.tab-content').forEach(el => {
+      const isTarget = el.id === 'panel-' + tabId;
+      el.classList.toggle('active', isTarget);
+      if (isTarget) el.classList.add('fade-up');
+    });
+    // Segment buttons (id="tab-*" or seg-tab)
+    document.querySelectorAll('.seg-tab').forEach(btn => {
+      const isTarget = btn.getAttribute('onclick') === `showTab('${tabId}')`;
+      if (isTarget) { btn.classList.add('on'); }
+      else { btn.classList.remove('on'); }
+    });
+    // Notas button special case
+    const notasBtn = document.getElementById('tab-notas');
+    if (notasBtn) notasBtn.classList.remove('on');
+  } catch(e) {
+    console.error('[showTab] Error switching to tab "' + tabId + '":', e);
+  }
 }
 
 function copiarSpeech() {
