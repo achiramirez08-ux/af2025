@@ -147,19 +147,19 @@
     <!-- Zona -->
     <div class="text-[9px] text-green-200 uppercase font-bold tracking-wider mb-1">Zona</div>
     <div class="flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
-      <button onclick="filtrarZona('todas')" id="z-todas" class="rubro-tab on">Todas</button>
-      <button onclick="filtrarZona('Gran Asunción')" id="z-Gran Asunción" class="rubro-tab off">🏙️ Asunción</button>
-      <button onclick="filtrarZona('Alto Paraná / Canindeyú')" id="z-Alto Paraná / Canindeyú" class="rubro-tab off">🌿 A.Paraná</button>
-      <button onclick="filtrarZona('Itapúa')" id="z-Itapúa" class="rubro-tab off">🌾 Itapúa</button>
-      <button onclick="filtrarZona('Chaco')" id="z-Chaco" class="rubro-tab off">🏜️ Chaco</button>
+      <button onclick="filtrarZona('todas')" data-zona="todas" class="rubro-tab on">Todas</button>
+      <button onclick="filtrarZona('Gran Asunción')" data-zona="Gran Asunción" class="rubro-tab off">🏙️ Asunción</button>
+      <button onclick="filtrarZona('Alto Paraná / Canindeyú')" data-zona="Alto Paraná / Canindeyú" class="rubro-tab off">🌿 A.Paraná</button>
+      <button onclick="filtrarZona('Itapúa')" data-zona="Itapúa" class="rubro-tab off">🌾 Itapúa</button>
+      <button onclick="filtrarZona('Chaco')" data-zona="Chaco" class="rubro-tab off">🏜️ Chaco</button>
     </div>
     <!-- Ordenar -->
     <div class="flex items-center gap-2 pb-2">
       <span class="text-[9px] text-green-200 uppercase font-bold tracking-wider shrink-0">Orden:</span>
       <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
-        <button onclick="sortBy('prioridad')" id="sort-prioridad" class="rubro-tab on">⭐ Prioridad</button>
-        <button onclick="sortBy('nombre')" id="sort-nombre" class="rubro-tab off">🔤 Nombre</button>
-        <button onclick="sortBy('usd3y')" id="sort-usd3y" class="rubro-tab off">💰 USD</button>
+        <button onclick="sortBy('prioridad')" data-sort="prioridad" class="rubro-tab on">⭐ Prioridad</button>
+        <button onclick="sortBy('nombre')" data-sort="nombre" class="rubro-tab off">🔤 Nombre</button>
+        <button onclick="sortBy('usd3y')" data-sort="usd3y" class="rubro-tab off">💰 USD</button>
       </div>
     </div>
   </div>
@@ -1119,19 +1119,20 @@ function toggleFiltrosAvanzados() {
 
 function sortBy(key) {
   estadoApp.sortKey = key;
-  ['prioridad','nombre','usd3y'].forEach(k => {
-    const btn = document.getElementById('sort-'+k);
-    if (btn) { btn.classList.toggle('on', k === key); btn.classList.toggle('off', k !== key); }
+  document.querySelectorAll('[data-sort]').forEach(btn => {
+    const k = btn.getAttribute('data-sort');
+    if (k === key) { btn.classList.add('on'); btn.classList.remove('off'); }
+    else { btn.classList.remove('on'); btn.classList.add('off'); }
   });
   filtrarEmpresas(document.getElementById('searchInput').value);
 }
 
 function filtrarZona(zona) {
   estadoApp.zona = zona;
-  document.querySelectorAll('[id^="z-"]').forEach(btn => {
-    const zKey = btn.id.replace('z-','');
-    btn.classList.toggle('on', zKey === zona);
-    btn.classList.toggle('off', zKey !== zona);
+  document.querySelectorAll('[data-zona]').forEach(btn => {
+    const z = btn.getAttribute('data-zona');
+    if (z === zona) { btn.classList.add('on'); btn.classList.remove('off'); }
+    else { btn.classList.remove('on'); btn.classList.add('off'); }
   });
   filtrarEmpresas(document.getElementById('searchInput').value);
 }
