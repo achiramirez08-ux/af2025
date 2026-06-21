@@ -88,6 +88,8 @@
   /* FAB historial */
   .fab { position: fixed; bottom: 24px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--verde); color: white; font-size: 20px; box-shadow: 0 4px 14px rgba(26,107,47,.45); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50; transition: transform .15s; }
   .fab:active { transform: scale(0.93); }
+  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
   /* Filtros avanzados interna */
   .filtro-chip { cursor: pointer; padding: 5px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; border: 1.5px solid #d1d5db; color: #6b7280; transition: all .15s; background: white; white-space: nowrap; }
   .filtro-chip.on { background: var(--verde-muy-claro); border-color: var(--verde); color: var(--verde); }
@@ -116,20 +118,14 @@
 
 <!-- ══ PANTALLA 1: LISTA DE EMPRESAS ══════════════════════ -->
 <div id="s1" class="screen active">
-  <div class="header-af text-white px-4 pt-4 pb-2 sticky top-0 z-10 shadow-lg">
-    <!-- Logo + Filtros button -->
-    <div class="flex items-center justify-between mb-2">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center text-base">🌱</div>
-        <div>
-          <div class="text-[10px] text-green-200 font-medium tracking-wider uppercase">Agrofuturo Paraguay</div>
-          <div class="text-sm font-bold leading-tight">Selector Estratégico</div>
-        </div>
+  <div class="header-af text-white px-4 pt-3 pb-1 sticky top-0 z-10 shadow-lg">
+    <!-- Logo row -->
+    <div class="flex items-center gap-2 mb-2">
+      <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">🌱</div>
+      <div class="flex-1">
+        <div class="text-[10px] text-green-200 font-medium tracking-wider uppercase">Agrofuturo Paraguay</div>
+        <div class="text-sm font-bold leading-tight">Selector Estratégico</div>
       </div>
-      <button onclick="toggleFiltrosAvanzados()" class="relative flex items-center gap-1.5 bg-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-xl active:bg-white/30">
-        🎛️ Filtros
-        <span id="filtros-av-badge" class="hidden absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full"></span>
-      </button>
     </div>
     <!-- Búsqueda -->
     <div class="relative mb-2">
@@ -138,8 +134,9 @@
         class="w-full bg-white/15 border border-white/30 text-white placeholder-white/60 rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:bg-white/25"
         oninput="filtrarEmpresas(this.value)">
     </div>
-    <!-- Tabs rubro — siempre visibles -->
-    <div class="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
+    <!-- Rubro -->
+    <div class="text-[9px] text-green-200 uppercase font-bold tracking-wider mb-1">Rubro</div>
+    <div class="flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
       <button onclick="filtrarPorRubro('todos')" id="f-todos" class="rubro-tab on">Todos</button>
       <button onclick="filtrarPorRubro('Soja')" id="f-Soja" class="rubro-tab off">🟡 Soja</button>
       <button onclick="filtrarPorRubro('Maíz')" id="f-Maíz" class="rubro-tab off">🟢 Maíz</button>
@@ -147,27 +144,22 @@
       <button onclick="filtrarPorRubro('Azúcar')" id="f-Azúcar" class="rubro-tab off">🔴 Azúcar</button>
       <button onclick="filtrarPorRubro('Arroz')" id="f-Arroz" class="rubro-tab off">🌾 Arroz</button>
     </div>
-    <!-- Panel filtros avanzados — colapsable -->
-    <div id="filtros-avanzados">
-      <div class="pt-1 pb-3 border-t border-white/20 space-y-2">
-        <div>
-          <div class="text-[10px] text-green-200 uppercase font-bold tracking-wider mb-1">Ordenar</div>
-          <div class="flex gap-1.5 flex-wrap">
-            <button onclick="sortBy('prioridad')" id="sort-prioridad" class="filtro-chip on">⭐ Prioridad</button>
-            <button onclick="sortBy('nombre')" id="sort-nombre" class="filtro-chip off">🔤 Nombre</button>
-            <button onclick="sortBy('usd3y')" id="sort-usd3y" class="filtro-chip off">💰 USD</button>
-          </div>
-        </div>
-        <div>
-          <div class="text-[10px] text-green-200 uppercase font-bold tracking-wider mb-1">Zona</div>
-          <div class="flex gap-1.5 overflow-x-auto pb-0.5">
-            <button onclick="filtrarZona('todas')" id="z-todas" class="filtro-chip on">Todas</button>
-            <button onclick="filtrarZona('Gran Asunción')" id="z-Gran Asunción" class="filtro-chip off">🏙️ Asunción</button>
-            <button onclick="filtrarZona('Alto Paraná / Canindeyú')" id="z-Alto Paraná / Canindeyú" class="filtro-chip off">🌿 Alto Paraná</button>
-            <button onclick="filtrarZona('Itapúa')" id="z-Itapúa" class="filtro-chip off">🌾 Itapúa</button>
-            <button onclick="filtrarZona('Chaco')" id="z-Chaco" class="filtro-chip off">🏜️ Chaco</button>
-          </div>
-        </div>
+    <!-- Zona -->
+    <div class="text-[9px] text-green-200 uppercase font-bold tracking-wider mb-1">Zona</div>
+    <div class="flex gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
+      <button onclick="filtrarZona('todas')" id="z-todas" class="rubro-tab on">Todas</button>
+      <button onclick="filtrarZona('Gran Asunción')" id="z-Gran Asunción" class="rubro-tab off">🏙️ Asunción</button>
+      <button onclick="filtrarZona('Alto Paraná / Canindeyú')" id="z-Alto Paraná / Canindeyú" class="rubro-tab off">🌿 A.Paraná</button>
+      <button onclick="filtrarZona('Itapúa')" id="z-Itapúa" class="rubro-tab off">🌾 Itapúa</button>
+      <button onclick="filtrarZona('Chaco')" id="z-Chaco" class="rubro-tab off">🏜️ Chaco</button>
+    </div>
+    <!-- Ordenar -->
+    <div class="flex items-center gap-2 pb-2">
+      <span class="text-[9px] text-green-200 uppercase font-bold tracking-wider shrink-0">Orden:</span>
+      <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
+        <button onclick="sortBy('prioridad')" id="sort-prioridad" class="rubro-tab on">⭐ Prioridad</button>
+        <button onclick="sortBy('nombre')" id="sort-nombre" class="rubro-tab off">🔤 Nombre</button>
+        <button onclick="sortBy('usd3y')" id="sort-usd3y" class="rubro-tab off">💰 USD</button>
       </div>
     </div>
   </div>
@@ -1129,7 +1121,7 @@ function sortBy(key) {
   estadoApp.sortKey = key;
   ['prioridad','nombre','usd3y'].forEach(k => {
     const btn = document.getElementById('sort-'+k);
-    if (btn) btn.classList.toggle('on', k === key), btn.classList.toggle('off', k !== key);
+    if (btn) { btn.classList.toggle('on', k === key); btn.classList.toggle('off', k !== key); }
   });
   filtrarEmpresas(document.getElementById('searchInput').value);
 }
