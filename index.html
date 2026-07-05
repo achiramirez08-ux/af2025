@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -220,11 +223,19 @@
 
   <!-- ========= TAB: CLIENTES ========= -->
   <section id="tab-clientes" class="tab-section pt-4">
-    <div class="relative mb-3">
+    <div class="flex gap-2 mb-3">
       <input id="clientes-search" type="text" placeholder="Buscar empresa, ciudad, rubro…"
         autocomplete="off"
-        class="w-full bg-gray-800 border border-gray-700 focus:border-emerald-500 outline-none rounded-xl px-4 py-3 text-sm">
+        class="flex-1 bg-gray-800 border border-gray-700 focus:border-emerald-500 outline-none rounded-xl px-4 py-3 text-sm">
+      <button onclick="NuevoCliente.abrir()"
+        class="bg-emerald-600 active:bg-emerald-700 rounded-xl w-12 flex items-center justify-center shrink-0 text-white text-2xl font-bold leading-none"
+        title="Agregar nuevo cliente">+</button>
     </div>
+    <!-- Botón nuevo cliente prominente -->
+    <button onclick="NuevoCliente.abrir()"
+      class="w-full mb-3 bg-emerald-600/20 border border-emerald-500/40 active:bg-emerald-600/40 rounded-xl py-2.5 text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2">
+      <span class="text-lg leading-none">+</span> Agregar nuevo cliente al directorio
+    </button>
     <!-- Filtro rubro -->
     <div class="text-[10px] text-gray-500 uppercase font-semibold mb-1">Rubro</div>
     <div class="flex gap-1.5 mb-2 flex-wrap" id="rubro-filtros">
@@ -483,6 +494,25 @@
           class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
       </div>
       <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">📍 GPS (lat / lng)</label>
+        <div class="flex gap-2">
+          <input id="edit-lat" type="number" step="0.000001" inputmode="decimal"
+            placeholder="Lat (-21.764)"
+            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+          <input id="edit-lng" type="number" step="0.000001" inputmode="decimal"
+            placeholder="Lng (-61.732)"
+            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        </div>
+        <button type="button" onclick="EditCliente.usarGPS()"
+          class="mt-1.5 text-[11px] text-emerald-400">📡 Capturar GPS actual como ubicación</button>
+        <div id="edit-geo-status" class="text-[10px] text-gray-500 mt-0.5 hidden"></div>
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">🌿 Rubros</label>
+        <input id="edit-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+      </div>
+      <div>
         <label class="text-[11px] text-gray-400 mb-1 block">📝 Mis notas sobre este cliente</label>
         <textarea id="edit-notas" rows="2" maxlength="400"
           placeholder="Resultados de visita, próximos pasos, preferencias…"
@@ -502,6 +532,115 @@
     </button>
   </div>
 </div>
+
+<!-- ======== MODAL NUEVO CLIENTE ======== -->
+<div id="nci-backdrop" onclick="NuevoCliente.cerrar()"
+  class="fixed inset-0 bg-black/60 z-40 opacity-0 pointer-events-none transition-opacity duration-200"></div>
+<div id="nci-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
+  <div class="bg-gray-800 p-5 pb-10 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700 overflow-y-auto" style="max-height:88vh;overflow-y:auto">
+    <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-base">➕ Nuevo cliente</h2>
+      <button onclick="NuevoCliente.cerrar()" class="text-gray-400 text-sm px-2 py-1">✕ Cerrar</button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">🏢 Empresa *</label>
+        <input id="nci-nombre" type="text" maxlength="150" autocapitalize="characters"
+          placeholder="ESTANCIA LA COLMENA"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] text-gray-400 mb-1 block">Zona</label>
+          <select id="nci-zona" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 outline-none text-sm">
+            <option value="Chaco">Chaco</option>
+            <option value="Alto Paraná">Alto Paraná</option>
+            <option value="Itapúa">Itapúa</option>
+            <option value="Caaguazú">Caaguazú</option>
+            <option value="San Pedro">San Pedro</option>
+            <option value="Gran Asunción">Gran Asunción</option>
+            <option value="Canindeyú">Canindeyú</option>
+            <option value="Amambay">Amambay</option>
+            <option value="Otra">Otra</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[11px] text-gray-400 mb-1 block">Ciudad</label>
+          <input id="nci-ciudad" type="text" maxlength="80" placeholder="Filadelfia"
+            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">🌿 Rubros</label>
+        <input id="nci-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">Tipo</label>
+        <select id="nci-tipo" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 outline-none text-sm">
+          <option value="productor">Productor agrícola</option>
+          <option value="cooperativa">Cooperativa</option>
+          <option value="distribuidor">Distribuidor</option>
+          <option value="gestora">Gestora / Admin. campos</option>
+          <option value="agroganadero">Agroganadera</option>
+          <option value="industrial">Industrial</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">👤 Contacto</label>
+        <input id="nci-contacto" type="text" maxlength="100" autocapitalize="words"
+          placeholder="Ing. Juan Pérez"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-[11px] text-gray-400 mb-1 block">📞 Teléfono</label>
+          <input id="nci-tel" type="tel" inputmode="tel" placeholder="0981 123 456"
+            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        </div>
+        <div>
+          <label class="text-[11px] text-gray-400 mb-1 block">✉️ Email</label>
+          <input id="nci-email" type="email" inputmode="email" placeholder="correo@..."
+            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        </div>
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">🏠 Dirección</label>
+        <input id="nci-dir" type="text" maxlength="200" placeholder="Transchaco Km 450"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">📍 GPS (lat / lng)</label>
+        <div class="flex gap-2">
+          <input id="nci-lat" type="number" step="0.000001" inputmode="decimal"
+            placeholder="Lat (-21.764)"
+            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+          <input id="nci-lng" type="number" step="0.000001" inputmode="decimal"
+            placeholder="Lng (-61.732)"
+            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        </div>
+        <button type="button" onclick="NuevoCliente.usarGPS()"
+          class="mt-1.5 text-[11px] text-emerald-400">📡 Capturar GPS actual</button>
+        <div id="nci-geo-status" class="text-[10px] text-gray-500 mt-0.5 hidden"></div>
+      </div>
+      <div>
+        <label class="text-[11px] text-gray-400 mb-1 block">📝 Notas / Gancho</label>
+        <textarea id="nci-notas" rows="2" maxlength="500"
+          placeholder="Productos de interés, próxima campaña…"
+          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm resize-none"></textarea>
+      </div>
+    </div>
+    <div id="nci-error" class="hidden mt-3 text-sm text-red-400 text-center font-semibold"></div>
+    <div id="nci-ok" class="hidden mt-3 text-sm text-emerald-400 text-center font-semibold">✅ Cliente guardado</div>
+    <button onclick="NuevoCliente.guardar()"
+      class="w-full mt-4 bg-emerald-500 active:bg-emerald-600 p-3.5 rounded-xl font-bold text-base">
+      Agregar cliente
+    </button>
+  </div>
+</div>
+
 
 <!-- ======== TOAST ======== -->
 <div id="toast" class="toast fixed bottom-24 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none z-[60] max-w-[90vw]">
@@ -693,7 +832,15 @@ const ClientesStore = {
     };
   },
   // Devuelve todos los clientes con overrides aplicados
-  mergeAll(){return CLIENTES.map(c=>this.merge(c));}
+  mergeAll(){
+    const base=CLIENTES.map(c=>this.merge(c));
+    try{
+      const custom=JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
+      const ids=new Set(base.map(c=>c.id));
+      custom.forEach(c=>{if(!ids.has(c.id))base.push(c);});
+    }catch(e){}
+    return base;
+  }
 };
 
 // ============ EDIT CLIENTE ============
@@ -708,6 +855,10 @@ const EditCliente = {
     document.getElementById("edit-email").value = c.email||"";
     document.getElementById("edit-direccion").value = c.direccion||"";
     document.getElementById("edit-notas").value = c._notas_fernando||"";
+    document.getElementById("edit-lat").value = c.lat||"";
+    document.getElementById("edit-lng").value = c.lng||"";
+    document.getElementById("edit-rubros").value = c.rubros||"";
+    document.getElementById("edit-geo-status").classList.add("hidden");
     document.getElementById("edit-guardado-ok").classList.add("hidden");
     document.getElementById("edit-backdrop").classList.remove("opacity-0","pointer-events-none");
     document.getElementById("edit-modal").classList.remove("sheet-hidden");
@@ -720,19 +871,38 @@ const EditCliente = {
   },
   guardar(){
     if(!this.clienteId)return;
-    ClientesStore.save(this.clienteId,{
+    const _lat=parseFloat(document.getElementById("edit-lat").value);
+    const _lng=parseFloat(document.getElementById("edit-lng").value);
+    const _campos={
       contacto:  document.getElementById("edit-contacto").value.trim(),
       telefono:  document.getElementById("edit-telefono").value.trim(),
       email:     document.getElementById("edit-email").value.trim(),
       direccion: document.getElementById("edit-direccion").value.trim(),
+      rubros:    document.getElementById("edit-rubros").value.trim(),
       notas:     document.getElementById("edit-notas").value.trim()
-    });
+    };
+    if(!isNaN(_lat)&&_lat!==0){_campos.lat=_lat;_campos.lng=_lng;}
+    ClientesStore.save(this.clienteId,_campos);
     // Mostrar confirmación visual en el modal (no cerrar de inmediato)
     const ok = document.getElementById("edit-guardado-ok");
     ok.classList.remove("hidden");
     if(navigator.vibrate)navigator.vibrate([50,30,50]);
     Clientes.render(document.getElementById("clientes-search").value);
     setTimeout(()=>{ ok.classList.add("hidden"); this.cerrar(); UI.toast("✅ Datos guardados."); }, 1400);
+  },
+  usarGPS(){
+    const st=document.getElementById("edit-geo-status");
+    st.textContent="📡 Obteniendo GPS…"; st.classList.remove("hidden");
+    if(!navigator.geolocation){st.textContent="❌ GPS no disponible";return;}
+    navigator.geolocation.getCurrentPosition(
+      p=>{
+        document.getElementById("edit-lat").value=p.coords.latitude.toFixed(6);
+        document.getElementById("edit-lng").value=p.coords.longitude.toFixed(6);
+        st.textContent="✅ "+p.coords.latitude.toFixed(4)+", "+p.coords.longitude.toFixed(4);
+      },
+      e=>{st.textContent="❌ "+e.message;},
+      {enableHighAccuracy:true,timeout:12000}
+    );
   },
   resetear(){
     if(!this.clienteId)return;
@@ -1800,6 +1970,91 @@ function optimizarRuta(origen, clientes) {
     badge.classList.remove("hidden");
   }
   return result;
+}
+
+
+// ============ NUEVO CLIENTE ============
+const NuevoCliente={
+  _id(n){return n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)+'-'+Date.now().toString(36);},
+  abrir(){
+    ['nci-nombre','nci-ciudad','nci-rubros','nci-contacto','nci-tel','nci-email',
+     'nci-dir','nci-lat','nci-lng','nci-notas'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('nci-zona').value='Chaco';
+    document.getElementById('nci-tipo').value='productor';
+    document.getElementById('nci-error').classList.add('hidden');
+    document.getElementById('nci-ok').classList.add('hidden');
+    document.getElementById('nci-geo-status').classList.add('hidden');
+    document.getElementById('nci-backdrop').classList.remove('opacity-0','pointer-events-none');
+    document.getElementById('nci-backdrop').style.pointerEvents='auto';
+    document.getElementById('nci-modal').classList.remove('sheet-hidden');
+    document.getElementById('nci-modal').style.transform='translateY(0)';
+    setTimeout(()=>document.getElementById('nci-nombre').focus(),200);
+  },
+  cerrar(){
+    document.getElementById('nci-backdrop').classList.add('opacity-0','pointer-events-none');
+    document.getElementById('nci-backdrop').style.pointerEvents='none';
+    document.getElementById('nci-modal').classList.add('sheet-hidden');
+  },
+  usarGPS(){
+    const st=document.getElementById('nci-geo-status');
+    st.textContent='📡 Obteniendo GPS…';st.classList.remove('hidden');
+    if(!navigator.geolocation){st.textContent='❌ GPS no disponible';return;}
+    navigator.geolocation.getCurrentPosition(
+      p=>{
+        document.getElementById('nci-lat').value=p.coords.latitude.toFixed(6);
+        document.getElementById('nci-lng').value=p.coords.longitude.toFixed(6);
+        st.textContent='✅ '+p.coords.latitude.toFixed(4)+', '+p.coords.longitude.toFixed(4);
+      },
+      e=>{st.textContent='❌ '+e.message;},
+      {enableHighAccuracy:true,timeout:12000}
+    );
+  },
+  guardar(){
+    const nombre=document.getElementById('nci-nombre').value.trim().toUpperCase();
+    const errEl=document.getElementById('nci-error');
+    if(!nombre){errEl.textContent='⚠️ El nombre es obligatorio.';errEl.classList.remove('hidden');document.getElementById('nci-nombre').focus();return;}
+    const lat=parseFloat(document.getElementById('nci-lat').value);
+    const lng=parseFloat(document.getElementById('nci-lng').value);
+    const nuevo={
+      id:this._id(nombre),nombre,ruc:'',
+      zona:document.getElementById('nci-zona').value,
+      ciudad:document.getElementById('nci-ciudad').value.trim().toUpperCase(),
+      depto:'',
+      direccion:document.getElementById('nci-dir').value.trim(),
+      telefono:document.getElementById('nci-tel').value.trim(),
+      email:document.getElementById('nci-email').value.trim(),
+      tipo:document.getElementById('nci-tipo').value,
+      rubros:document.getElementById('nci-rubros').value.trim(),
+      lat:(!isNaN(lat)&&lat!==0)?lat:null,
+      lng:(!isNaN(lng)&&lng!==0)?lng:null,
+      dnit_estado:'PROSPECTO NUEVO',top_500:false,riesgo:'🟡 BAJO RIESGO',
+      gancho_comercial:document.getElementById('nci-notas').value.trim(),
+      cliente_activo:false,prioridad:3,gremio:'',gancho_tecnico:'',
+      zona_chaco:document.getElementById('nci-zona').value==='Chaco',
+      fuente:'Agregado por Fernando en campo',
+      _contacto:document.getElementById('nci-contacto').value.trim(),
+      _editado:true,createdAt:new Date().toISOString()
+    };
+    try{
+      const lista=JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
+      lista.push(nuevo);
+      localStorage.setItem("rf.custom.v1",JSON.stringify(lista));
+    }catch(e){}
+    errEl.classList.add('hidden');
+    document.getElementById('nci-ok').classList.remove('hidden');
+    if(navigator.vibrate)navigator.vibrate([50,30,50]);
+    if(typeof Clientes!=='undefined')Clientes.render(document.getElementById('clientes-search').value||'');
+    setTimeout(()=>{this.cerrar();UI.toast('✅ '+nombre+' agregado.');},1400);
+  }
+};
+
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js')
+      .then(r=>console.log('[SW] ok',r.scope))
+      .catch(e=>console.warn('[SW] fail',e));
+  });
 }
 
 document.addEventListener("DOMContentLoaded",App.init);
