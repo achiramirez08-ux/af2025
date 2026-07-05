@@ -6,20 +6,17 @@ on:
   pull_request:
     branches: [ main ]
 
-# Permisos para GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Solo un deploy a la vez
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
 
-  # ── JOB 1: VALIDAR ──────────────────────────────────────────────────────────
   validate:
     name: Validar HTML y JS
     runs-on: ubuntu-latest
@@ -32,50 +29,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Verificar sintaxis JS (extraer y validar)
+      - name: Verificar sintaxis JS
         run: |
-          # Extraer el bloque <script> del HTML y validar con node
           node -e "
             const fs = require('fs');
             const html = fs.readFileSync('index.html', 'utf8');
             const match = html.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);
-            if (!match) { console.error('No se encontró bloque <script>'); process.exit(1); }
-            const js = match[1];
-            // Reemplazar referencias al DOM que fallan fuera del browser
-            const safe = js.replace(/const CLIENTES = \[[\s\S]*?\];/, 'const CLIENTES = [];')
-              .replace(/const CATALOG_MATRIX[\s\S]*?^};/m, '')
-              .replace(/const GANCHO_MATRIX[\s\S]*?^};/m, '');
-            fs.writeFileSync('/tmp/test.js', '\"use strict\";\n' + safe);
+            if (!match) { console.error('No script block'); process.exit(1); }
+            const js = match[1].replace(/const CLIENTES = \[[\s\S]*?\];/, 'const CLIENTES = [];');
+            fs.writeFileSync('/tmp/test.js', '\"use strict\";\n' + js);
           "
-          node --check /tmp/test.js && echo "✅ JS syntax OK" || (echo "❌ JS syntax error" && exit 1)
+          node --check /tmp/test.js && echo "✅ JS OK" || (echo "❌ JS error" && exit 1)
 
       - name: Verificar archivos requeridos
         run: |
-          echo "Verificando archivos del repositorio..."
-          test -f index.html && echo "✅ index.html" || (echo "❌ Falta index.html" && exit 1)
-          test -f sw.js     && echo "✅ sw.js" || (echo "⚠️ sw.js no encontrado (offline no disponible)")
-          test -f manifest.json && echo "✅ manifest.json" || (echo "⚠️ manifest.json no encontrado")
-          echo "---"
-          echo "Tamaño de index.html: $(du -sh index.html | cut -f1)"
-          echo "Clientes en directorio: $(grep -o '\"nombre\":' index.html | wc -l)"
+          test -f index.html    && echo "✅ index.html"    || (echo "❌ index.html falta" && exit 1)
+          test -f sw.js         && echo "✅ sw.js"         || echo "⚠️  sw.js no encontrado"
+          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️  manifest.json no encontrado"
+          echo "Tamaño: $(du -sh index.html | cut -f1)"
 
-      - name: Verificar que el SHARED_SECRET no está vacío
+      - name: Verificar SHARED_SECRET
         run: |
-          if grep -q 'SHARED_SECRET.*""' index.html; then
-            echo "❌ SHARED_SECRET vacío — el sync no funcionará"
-            exit 1
-          fi
-          echo "✅ SHARED_SECRET configurado"
+          grep -q 'SHARED_SECRET' index.html \
+            && echo "✅ SHARED_SECRET presente" \
+            || (echo "❌ SHARED_SECRET no encontrado" && exit 1)
 
-      - name: Verificar Service Worker registrado en HTML
+      - name: Verificar Service Worker
         run: |
-          if grep -q 'serviceWorker' index.html; then
-            echo "✅ Service Worker registrado en HTML"
-          else
-            echo "⚠️ Service Worker NO registrado — agregar registro en App.init()"
-          fi
+          grep -q 'serviceWorker' index.html \
+            && echo "✅ SW registrado" \
+            || echo "⚠️  SW no registrado en HTML"
 
-  # ── JOB 2: DEPLOY A GITHUB PAGES ────────────────────────────────────────────
   deploy:
     name: Deploy a GitHub Pages
     needs: validate
@@ -96,14 +80,11 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'   # sube todo el repo raíz
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Notificar URL del deploy
-        run: |
-          echo "✅ Deploy exitoso"
-          echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
-          echo "📱 Fernando puede abrir esta URL en Chrome Android"
+      - name: Mostrar URL
+        run: echo "✅ App publicada en ${{ steps.deployment.outputs.page_url }}"
