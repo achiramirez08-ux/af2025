@@ -14,7 +14,7 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
   .tnum{font-variant-numeric:tabular-nums}
-  .sheet{transition:transform .28s ease}
+  .sheet{transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform}
   .sheet-hidden{transform:translateY(100%)}
   .backdrop{transition:opacity .2s ease}
   @keyframes pulse-soft{0%,100%{opacity:1}50%{opacity:.45}}
@@ -229,12 +229,12 @@
       <input id="clientes-search" type="text" placeholder="Buscar empresa, ciudad, rubro…"
         autocomplete="off"
         class="flex-1 bg-gray-800 border border-gray-700 focus:border-emerald-500 outline-none rounded-xl px-4 py-3 text-sm">
-      <button onclick="NuevoCliente.abrir()"
-        class="bg-emerald-600 active:bg-emerald-700 rounded-xl w-12 flex items-center justify-center shrink-0 text-white text-2xl font-bold leading-none"
+      <button type="button" onclick="NuevoCliente.abrir()"
+        class="bg-emerald-600 active:bg-emerald-700 rounded-xl w-12 h-12 flex items-center justify-center shrink-0 text-white text-2xl font-bold"
         title="Agregar nuevo cliente">+</button>
     </div>
     <!-- Botón nuevo cliente prominente -->
-    <button onclick="NuevoCliente.abrir()"
+    <button type="button" onclick="NuevoCliente.abrir()"
       class="w-full mb-3 bg-emerald-600/20 border border-emerald-500/40 active:bg-emerald-600/40 rounded-xl py-2.5 text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2">
       <span class="text-lg leading-none">+</span> Agregar nuevo cliente al directorio
     </button>
@@ -344,13 +344,17 @@
 </nav>
 
 <!-- ======== MODAL NUEVO PEDIDO (bottom sheet) ======== -->
-<div id="modal-backdrop" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
+<div id="modal-backdrop" onclick="App.cerrarModal()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
 <div id="modal-carga" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
-  <form id="form-carga" class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto space-y-3 border-t border-gray-700 max-h-[90vh] overflow-y-auto">
+  <form id="form-carga" class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto space-y-3 border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-1"></div>
     <div class="flex items-center justify-between">
       <h2 class="font-bold text-lg" id="modal-titulo">Registrar</h2>
-      <span id="modal-tipo-chip" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
+      <div class="flex items-center gap-2">
+        <span id="modal-tipo-chip" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
+        <button type="button" onclick="App.cerrarModal()"
+          class="text-gray-400 bg-gray-700 active:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none">✕</button>
+      </div>
     </div>
     <input type="hidden" id="form-tipo">
 
@@ -460,8 +464,8 @@
 </div>
 
 <!-- ======== MODAL EDITAR CLIENTE ======== -->
-<div id="edit-backdrop" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
-<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
+<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
+<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50" style="isolation:isolate">
   <div class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
     <div class="flex items-center justify-between mb-1">
@@ -539,109 +543,118 @@
 <div id="nci-backdrop" onclick="NuevoCliente.cerrar()"
   class="fixed inset-0 bg-black/60 z-40 opacity-0 pointer-events-none transition-opacity duration-200"></div>
 <div id="nci-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
-  <div class="bg-gray-800 p-5 pb-10 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700 overflow-y-auto" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
-    <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="font-bold text-base">➕ Nuevo cliente</h2>
-      <button onclick="NuevoCliente.cerrar()" class="text-gray-400 text-sm px-2 py-1">✕ Cerrar</button>
-    </div>
-    <div class="space-y-3">
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">🏢 Empresa *</label>
-        <input id="nci-nombre" type="text" maxlength="150" autocapitalize="characters"
-          placeholder="ESTANCIA LA COLMENA"
-          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+  <div style="background:#1f2937;border-radius:1.5rem 1.5rem 0 0;border-top:1px solid #374151;max-height:88vh;display:flex;flex-direction:column;width:100%;max-width:28rem;margin:0 auto">
+    <!-- Header fijo -->
+    <div style="padding:1.25rem 1.25rem 0.75rem;flex-shrink:0">
+      <div style="width:2.5rem;height:0.375rem;background:#4b5563;border-radius:9999px;margin:0 auto 0.75rem"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2 style="font-weight:700;font-size:1rem">➕ Nuevo cliente</h2>
+        <button type="button" onclick="NuevoCliente.cerrar()"
+          style="color:#9ca3af;background:#374151;border-radius:0.5rem;padding:0.375rem 0.75rem;font-size:0.875rem;font-weight:600;cursor:pointer">✕ Cerrar</button>
       </div>
-      <div class="grid grid-cols-2 gap-2">
+    </div>
+    <!-- Campos scrolleables -->
+    <div style="overflow-y:auto;flex:1;padding:0 1.25rem 1rem;-webkit-overflow-scrolling:touch">
+      <div style="display:flex;flex-direction:column;gap:0.75rem">
         <div>
-          <label class="text-[11px] text-gray-400 mb-1 block">Zona</label>
-          <select id="nci-zona" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 outline-none text-sm">
-            <option value="Chaco">Chaco</option>
-            <option value="Alto Paraná">Alto Paraná</option>
-            <option value="Itapúa">Itapúa</option>
-            <option value="Caaguazú">Caaguazú</option>
-            <option value="San Pedro">San Pedro</option>
-            <option value="Gran Asunción">Gran Asunción</option>
-            <option value="Canindeyú">Canindeyú</option>
-            <option value="Amambay">Amambay</option>
-            <option value="Otra">Otra</option>
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🏢 Empresa *</label>
+          <input id="nci-nombre" type="text" maxlength="150" autocapitalize="characters"
+            placeholder="ESTANCIA LA COLMENA"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div>
+            <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Zona</label>
+            <select id="nci-zona"
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+              <option value="Chaco">Chaco</option>
+              <option value="Alto Paraná">Alto Paraná</option>
+              <option value="Itapúa">Itapúa</option>
+              <option value="Caaguazú">Caaguazú</option>
+              <option value="San Pedro">San Pedro</option>
+              <option value="Gran Asunción">Gran Asunción</option>
+              <option value="Canindeyú">Canindeyú</option>
+              <option value="Amambay">Amambay</option>
+              <option value="Otra">Otra</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Ciudad</label>
+            <input id="nci-ciudad" type="text" maxlength="80" placeholder="Filadelfia"
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🌿 Rubros</label>
+          <input id="nci-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Tipo</label>
+          <select id="nci-tipo"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+            <option value="productor">Productor agrícola</option>
+            <option value="cooperativa">Cooperativa</option>
+            <option value="distribuidor">Distribuidor</option>
+            <option value="gestora">Gestora / Admin. campos</option>
+            <option value="agroganadero">Agroganadera</option>
+            <option value="industrial">Industrial</option>
+            <option value="otro">Otro</option>
           </select>
         </div>
         <div>
-          <label class="text-[11px] text-gray-400 mb-1 block">Ciudad</label>
-          <input id="nci-ciudad" type="text" maxlength="80" placeholder="Filadelfia"
-            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">👤 Contacto</label>
+          <input id="nci-contacto" type="text" maxlength="100" autocapitalize="words" placeholder="Ing. Juan Pérez"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
         </div>
-      </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">🌿 Rubros</label>
-        <input id="nci-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía"
-          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
-      </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">Tipo</label>
-        <select id="nci-tipo" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 outline-none text-sm">
-          <option value="productor">Productor agrícola</option>
-          <option value="cooperativa">Cooperativa</option>
-          <option value="distribuidor">Distribuidor</option>
-          <option value="gestora">Gestora / Admin. campos</option>
-          <option value="agroganadero">Agroganadera</option>
-          <option value="industrial">Industrial</option>
-          <option value="otro">Otro</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">👤 Contacto</label>
-        <input id="nci-contacto" type="text" maxlength="100" autocapitalize="words"
-          placeholder="Ing. Juan Pérez"
-          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <label class="text-[11px] text-gray-400 mb-1 block">📞 Teléfono</label>
-          <input id="nci-tel" type="tel" inputmode="tel" placeholder="0981 123 456"
-            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div>
+            <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📞 Teléfono</label>
+            <input id="nci-tel" type="tel" inputmode="tel" placeholder="0981 123 456"
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">✉️ Email</label>
+            <input id="nci-email" type="email" inputmode="email" placeholder="correo@..."
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+          </div>
         </div>
         <div>
-          <label class="text-[11px] text-gray-400 mb-1 block">✉️ Email</label>
-          <input id="nci-email" type="email" inputmode="email" placeholder="correo@..."
-            class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🏠 Dirección</label>
+          <input id="nci-dir" type="text" maxlength="200" placeholder="Transchaco Km 450"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+        </div>
+        <div>
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📍 GPS (lat / lng)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+            <input id="nci-lat" type="number" step="0.000001" inputmode="decimal" placeholder="Lat (-21.764)"
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+            <input id="nci-lng" type="number" step="0.000001" inputmode="decimal" placeholder="Lng (-61.732)"
+              style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box">
+          </div>
+          <button type="button" onclick="NuevoCliente.usarGPS()"
+            style="margin-top:0.375rem;font-size:0.6875rem;color:#34d399;background:none;border:none;padding:0;cursor:pointer">📡 Capturar GPS actual</button>
+          <div id="nci-geo-status" style="font-size:0.625rem;color:#6b7280;margin-top:0.25rem;display:none"></div>
+        </div>
+        <div>
+          <label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📝 Notas</label>
+          <textarea id="nci-notas" rows="2" maxlength="500" placeholder="Productos de interés, próxima campaña…"
+            style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;resize:none;box-sizing:border-box"></textarea>
         </div>
       </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">🏠 Dirección</label>
-        <input id="nci-dir" type="text" maxlength="200" placeholder="Transchaco Km 450"
-          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
-      </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">📍 GPS (lat / lng)</label>
-        <div class="flex gap-2">
-          <input id="nci-lat" type="number" step="0.000001" inputmode="decimal"
-            placeholder="Lat (-21.764)"
-            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
-          <input id="nci-lng" type="number" step="0.000001" inputmode="decimal"
-            placeholder="Lng (-61.732)"
-            class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm">
-        </div>
-        <button type="button" onclick="NuevoCliente.usarGPS()"
-          class="mt-1.5 text-[11px] text-emerald-400">📡 Capturar GPS actual</button>
-        <div id="nci-geo-status" class="text-[10px] text-gray-500 mt-0.5 hidden"></div>
-      </div>
-      <div>
-        <label class="text-[11px] text-gray-400 mb-1 block">📝 Notas / Gancho</label>
-        <textarea id="nci-notas" rows="2" maxlength="500"
-          placeholder="Productos de interés, próxima campaña…"
-          class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm resize-none"></textarea>
-      </div>
+      <div id="nci-error" style="display:none;margin-top:0.75rem;font-size:0.875rem;color:#f87171;text-align:center;font-weight:600"></div>
+      <div id="nci-ok" style="display:none;margin-top:0.75rem;font-size:0.875rem;color:#34d399;text-align:center;font-weight:600">✅ Cliente guardado</div>
     </div>
-    <div id="nci-error" class="hidden mt-3 text-sm text-red-400 text-center font-semibold"></div>
-    <div id="nci-ok" class="hidden mt-3 text-sm text-emerald-400 text-center font-semibold">✅ Cliente guardado</div>
-    <button onclick="NuevoCliente.guardar()"
-      class="w-full mt-4 bg-emerald-500 active:bg-emerald-600 p-3.5 rounded-xl font-bold text-base">
-      Agregar cliente
-    </button>
+    <!-- Footer fijo -->
+    <div style="padding:0.75rem 1.25rem 2rem;flex-shrink:0">
+      <button type="button" onclick="NuevoCliente.guardar()"
+        style="width:100%;background:#10b981;padding:0.875rem;border-radius:0.75rem;font-weight:700;font-size:1rem;color:#fff;border:none;cursor:pointer;active:background:#059669">
+        Agregar cliente
+      </button>
+    </div>
   </div>
 </div>
+
 
 
 <!-- ======== TOAST ======== -->
@@ -849,7 +862,11 @@ const ClientesStore = {
 const EditCliente = {
   clienteId: null,
   abrir(id){
-    const c = ClientesStore.merge(CLIENTES.find(x=>x.id===id));
+    // Buscar en CLIENTES[] Y en custom (mergeAll incluye ambos)
+    const baseC = CLIENTES.find(x=>x.id===id)
+      || ClientesStore.mergeAll().find(x=>x.id===id)
+      || {id,nombre:'?',telefono:'',email:'',direccion:'',rubros:'',lat:null,lng:null};
+    const c = ClientesStore.merge(baseC);
     this.clienteId = id;
     document.getElementById("edit-nombre-label").textContent = c.nombre;
     document.getElementById("edit-contacto").value = c._contacto||"";
@@ -862,13 +879,23 @@ const EditCliente = {
     document.getElementById("edit-rubros").value = c.rubros||"";
     document.getElementById("edit-geo-status").classList.add("hidden");
     document.getElementById("edit-guardado-ok").classList.add("hidden");
-    document.getElementById("edit-backdrop").classList.remove("opacity-0","pointer-events-none");
-    document.getElementById("edit-modal").classList.remove("sheet-hidden");
-    setTimeout(()=>document.getElementById("edit-contacto").focus(),150);
+    const eb = document.getElementById("edit-backdrop");
+    const em = document.getElementById("edit-modal");
+    eb.classList.remove("opacity-0","pointer-events-none");
+    eb.style.opacity = "1";
+    eb.style.pointerEvents = "auto";
+    em.classList.remove("sheet-hidden");
+    em.style.transform = "translateY(0)";
+    setTimeout(()=>{ document.getElementById("edit-contacto").focus(); }, 150);
   },
   cerrar(){
-    document.getElementById("edit-backdrop").classList.add("opacity-0","pointer-events-none");
-    document.getElementById("edit-modal").classList.add("sheet-hidden");
+    const _eb = document.getElementById("edit-backdrop");
+    const _em = document.getElementById("edit-modal");
+    _eb.classList.add("opacity-0","pointer-events-none");
+    _eb.style.opacity = "";
+    _eb.style.pointerEvents = "";
+    _em.classList.add("sheet-hidden");
+    _em.style.transform = "";
     this.clienteId=null;
   },
   guardar(){
@@ -1071,7 +1098,7 @@ const Ruta = {
     lista.innerHTML=cercanos.map(c=>Ruta.clienteCard(c,true)).join("");
     lista.querySelectorAll(".btn-wa-ruta").forEach(b=>b.addEventListener("click",()=>Clientes.abrirWA(b.dataset.id)));
     lista.querySelectorAll(".btn-maps-ruta").forEach(b=>b.addEventListener("click",()=>{const c=CLIENTES.find(x=>x.id===b.dataset.id);if(c)window.open(`https://maps.google.com/?daddr=${c.lat},${c.lng}`)}));
-    lista.querySelectorAll(".btn-edit-cliente").forEach(b=>b.addEventListener("click",()=>EditCliente.abrir(b.dataset.id)));
+    lista.querySelectorAll(".btn-edit-cliente").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();EditCliente.abrir(b.dataset.id);}));
   },
   clienteCard(c, showDist){
     // c ya viene merged (con overrides aplicados)
@@ -1519,15 +1546,23 @@ const App = {
     const chip=document.getElementById("modal-tipo-chip");
     chip.textContent=tipo;
     chip.className="text-xs font-bold px-2.5 py-1 rounded-full "+(tipo==="Venta"?"bg-emerald-500/15 text-emerald-300":"bg-sky-500/15 text-sky-300");
-    document.getElementById("modal-backdrop").classList.remove("opacity-0","pointer-events-none");
-    document.getElementById("modal-carga").classList.remove("sheet-hidden");
+    const _mbo=document.getElementById("modal-backdrop");
+    const _mco=document.getElementById("modal-carga");
+    _mbo.classList.remove("opacity-0","pointer-events-none");
+    _mbo.style.opacity="1"; _mbo.style.pointerEvents="auto";
+    _mco.classList.remove("sheet-hidden");
+    _mco.style.transform="translateY(0)";
     Lineas.reset();Foto.reset();
     setTimeout(()=>document.getElementById("input-cliente").focus(),150);
   },
   cerrarModal(){
     try{Voice.deactivate();}catch(e){}
-    document.getElementById("modal-backdrop").classList.add("opacity-0","pointer-events-none");
-    document.getElementById("modal-carga").classList.add("sheet-hidden");
+    const _mb=document.getElementById("modal-backdrop");
+    const _mc=document.getElementById("modal-carga");
+    _mb.classList.add("opacity-0","pointer-events-none");
+    _mb.style.opacity=""; _mb.style.pointerEvents="";
+    _mc.classList.add("sheet-hidden");
+    _mc.style.transform="";
     document.getElementById("form-carga").reset();
     document.getElementById("error-cliente").classList.add("hidden");
     document.getElementById("error-lineas").classList.add("hidden");
@@ -1618,7 +1653,9 @@ const App = {
     document.getElementById("input-cliente").addEventListener("input",e=>{
       clearTimeout(debC);debC=setTimeout(()=>Clientes.sugerirEnModal(e.target.value),120);
     });
-    Lineas.bind();Foto.bind();App.initNav();VentasUI.init();Voice.init();Clientes.init();
+    Lineas.bind();Foto.bind();App.initNav();VentasUI.init();Voice.init();
+    // Clientes: diferir 120ms para no bloquear el primer render del dashboard
+    setTimeout(()=>Clientes.init(), 120);
     window.addEventListener("online",()=>{UI.toast("Conexión recuperada. Sincronizando…");Sync.flushQueue()});
     window.addEventListener("offline",()=>{UI.updateStatusBadge();UI.toast("Sin conexión. Los datos se guardan en el equipo.")});
     setInterval(()=>{if(navigator.onLine)Sync.flushQueue()},CONFIG.RETRY_INTERVAL_MS);
@@ -1989,23 +2026,28 @@ const NuevoCliente={
      'nci-dir','nci-lat','nci-lng','nci-notas'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('nci-zona').value='Chaco';
     document.getElementById('nci-tipo').value='productor';
-    document.getElementById('nci-error').classList.add('hidden');
-    document.getElementById('nci-ok').classList.add('hidden');
-    document.getElementById('nci-geo-status').classList.add('hidden');
-    document.getElementById('nci-backdrop').classList.remove('opacity-0','pointer-events-none');
-    document.getElementById('nci-backdrop').style.pointerEvents='auto';
-    document.getElementById('nci-modal').classList.remove('sheet-hidden');
-    document.getElementById('nci-modal').style.transform='translateY(0)';
+    document.getElementById('nci-error').style.display='none';
+    document.getElementById('nci-ok').style.display='none';
+    document.getElementById('nci-geo-status').style.display='none';
+    const _nbo=document.getElementById('nci-backdrop');
+    const _nmo=document.getElementById('nci-modal');
+    _nbo.classList.remove('opacity-0','pointer-events-none');
+    _nbo.style.opacity='1'; _nbo.style.pointerEvents='auto';
+    _nmo.classList.remove('sheet-hidden');
+    _nmo.style.transform='translateY(0)';
     setTimeout(()=>document.getElementById('nci-nombre').focus(),200);
   },
   cerrar(){
-    document.getElementById('nci-backdrop').classList.add('opacity-0','pointer-events-none');
-    document.getElementById('nci-backdrop').style.pointerEvents='none';
-    document.getElementById('nci-modal').classList.add('sheet-hidden');
+    const _nb=document.getElementById('nci-backdrop');
+    const _nm=document.getElementById('nci-modal');
+    _nb.classList.add('opacity-0','pointer-events-none');
+    _nb.style.opacity=''; _nb.style.pointerEvents='none';
+    _nm.classList.add('sheet-hidden');
+    _nm.style.transform='';
   },
   usarGPS(){
     const st=document.getElementById('nci-geo-status');
-    st.textContent='📡 Obteniendo GPS…';st.classList.remove('hidden');
+    st.textContent='📡 Obteniendo GPS…';st.style.display='block';
     if(!navigator.geolocation){st.textContent='❌ GPS no disponible';return;}
     navigator.geolocation.getCurrentPosition(
       p=>{
@@ -2020,7 +2062,7 @@ const NuevoCliente={
   guardar(){
     const nombre=document.getElementById('nci-nombre').value.trim().toUpperCase();
     const errEl=document.getElementById('nci-error');
-    if(!nombre){errEl.textContent='⚠️ El nombre es obligatorio.';errEl.classList.remove('hidden');document.getElementById('nci-nombre').focus();return;}
+    if(!nombre){errEl.textContent='⚠️ El nombre es obligatorio.';errEl.style.display='block';document.getElementById('nci-nombre').focus();return;}
     const lat=parseFloat(document.getElementById('nci-lat').value);
     const lng=parseFloat(document.getElementById('nci-lng').value);
     const nuevo={
@@ -2048,8 +2090,8 @@ const NuevoCliente={
       lista.push(nuevo);
       localStorage.setItem("rf.custom.v1",JSON.stringify(lista));
     }catch(e){}
-    errEl.classList.add('hidden');
-    document.getElementById('nci-ok').classList.remove('hidden');
+    errEl.style.display='none';
+    document.getElementById('nci-ok').style.display='block';
     if(navigator.vibrate)navigator.vibrate([50,30,50]);
     if(typeof Clientes!=='undefined')Clientes.render(document.getElementById('clientes-search').value||'');
     setTimeout(()=>{this.cerrar();UI.toast('✅ '+nombre+' agregado.');},1400);
