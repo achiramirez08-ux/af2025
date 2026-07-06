@@ -3,6 +3,8 @@ name: Deploy Ruta Fernando
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -14,29 +16,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+
+  validate:
+    name: Validar HTML y JS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verificar archivos requeridos
+        run: |
+          test -f index.html && echo "✅ index.html" || (echo "❌ Falta index.html" && exit 1)
+          test -f sw.js && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado"
+          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
+          echo "Tamaño: $(du -sh index.html | cut -f1)"
+
+      - name: Verificar SHARED_SECRET
+        run: |
+          grep -q 'SHARED_SECRET' index.html \
+            && echo "✅ SHARED_SECRET presente" \
+            || (echo "❌ SHARED_SECRET no encontrado" && exit 1)
+
+      - name: Verificar Service Worker
+        run: |
+          grep -q 'serviceWorker' index.html \
+            && echo "✅ SW registrado" \
+            || echo "⚠️ SW no registrado"
+
   deploy:
     name: Deploy a GitHub Pages
+    needs: validate
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout del repositorio
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar GitHub Pages
+      - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Subir artefacto (todos los archivos)
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
 
-      - name: Desplegar en GitHub Pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Notificar URL
-        run: echo "✅ Deploy exitoso en ${{ steps.deployment.outputs.page_url }}"
+      - name: Mostrar URL
+        run: echo "✅ Publicado en ${{ steps.deployment.outputs.page_url }}"
