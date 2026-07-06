@@ -2,13 +2,13 @@
   "name": "Ruta Fernando — Agrofuturo",
   "short_name": "Ruta Fernando",
   "description": "Sistema de mando comercial para rutas agrícolas en el Chaco paraguayo",
-  "start_url": "/",
+  "start_url": "/af2025/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#111827",
   "theme_color": "#111827",
   "lang": "es",
-  "scope": "/",
+  "scope": "/af2025/",
   "icons": [
     {
       "src": "icon-192.png",
@@ -23,21 +23,34 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "shortcuts": [
     {
       "name": "Nueva venta",
       "short_name": "Venta",
       "description": "Registrar una venta rápida",
       "url": "/?accion=venta",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Mi ruta hoy",
       "short_name": "Ruta",
       "description": "Ver clientes cercanos",
       "url": "/?tab=ruta",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
