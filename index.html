@@ -383,13 +383,11 @@ async function cargarDatos() {
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
-    // Cachear datos en localStorage
-    try { localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES })); } catch(e) {}
-    // Iniciar app
+    localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
     App.init();
   } catch (err) {
     console.error('Error cargando datos:', err);
-    // Fallback: intentar desde localStorage
+    // Intentar cargar desde localStorage
     try {
       const cached = JSON.parse(localStorage.getItem('rutaFernando.datos.cache') || 'null');
       if (cached && cached.CATALOGO && cached.CLIENTES) {
@@ -397,43 +395,14 @@ async function cargarDatos() {
         CLIENTES = cached.CLIENTES;
         DATOS_CARGADOS = true;
         App.init();
+        UI.toast('⚠️ Datos cargados desde caché local');
         return;
       }
     } catch(e) {}
+    // Si falla, mostrar mensaje y reintentar
     document.getElementById('status-text').textContent = '⚠️ Error cargando datos. Reintentando…';
     setTimeout(cargarDatos, 5000);
   }
-}
-
-// ============ RESTO DEL CÓDIGO (UTILS, STORE, CLIENTES, ETC.) ============
-// Se mantiene exactamente igual que en la versión anterior, pero con las siguientes adaptaciones:
-// - Todas las funciones que usan CATALOGO o CLIENTES ahora verifican DATOS_CARGADOS antes de usarlos.
-// - App.init() se ejecuta solo después de cargar datos.
-// - En App.handleSubmit, después de guardar localmente, se registra Background Sync.
-// - Se añade la función registerSync() para notificar al Service Worker.
-
-// ---------- (Aquí iría TODO el código de la versión anterior, sin cambios) ----------
-// Como es muy extenso, lo he omitido en este mensaje para no saturar.
-// Pero en el archivo final que te entrego, está completo.
-
-// ---------- FUNCIONES ADICIONALES PARA BACKGROUND SYNC ----------
-function registerSync() {
-  if ('serviceWorker' in navigator && 'SyncManager' in window) {
-    navigator.serviceWorker.ready.then(reg => {
-      reg.sync.register('sync-ventas')
-        .then(() => console.log('[Sync] registrado'))
-        .catch(err => console.warn('[Sync] falló', err));
-    });
-  }
-}
-
-// Escuchar mensajes del Service Worker para sincronizar
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.addEventListener('message', event => {
-    if (event.data && event.data.type === 'SYNC_READY') {
-      Sync.flushQueue();
-    }
-  });
 }
 
 // ============ INICIO ============
