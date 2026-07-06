@@ -1,6 +1,5 @@
 // ============================================================
 // RUTA FERNANDO — Service Worker v2.0
-// Cache-First + Background Sync para pedidos pendientes
 // ============================================================
 
 const CACHE_NAME    = 'ruta-fernando-v17';
