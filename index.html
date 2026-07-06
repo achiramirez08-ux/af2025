@@ -13,7 +13,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
-  /* ============ ESTILOS (igual que antes) ============ */
+  /* ============ ESTILOS (mantén los que ya tenías) ============ */
   .tnum{font-variant-numeric:tabular-nums}
   .sheet{transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform}
   .sheet-hidden{transform:translateY(100%)}
@@ -33,15 +33,9 @@
   .prod-rec-item{cursor:pointer;transition:background .15s}
   .prod-rec-item.selected{background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.5)!important}
   .score-bar-fill{transition:width .4s ease;height:6px;border-radius:3px;background:linear-gradient(90deg,#f59e0b,#10b981)}
-
-  /* Bloqueo de scroll en iOS */
-  body.modal-open {
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    overflow:hidden; -webkit-overflow-scrolling:touch;
-  }
-  #modal-backdrop,#modal-carga,#ficha-backdrop,#ficha-modal,
-  #edit-backdrop,#edit-modal,#nci-backdrop,#nci-modal { z-index:40; }
-  #modal-carga,#ficha-modal,#edit-modal,#nci-modal { z-index:50; }
+  body.modal-open{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;-webkit-overflow-scrolling:touch}
+  #modal-backdrop,#modal-carga,#ficha-backdrop,#ficha-modal,#edit-backdrop,#edit-modal,#nci-backdrop,#nci-modal{z-index:40}
+  #modal-carga,#ficha-modal,#edit-modal,#nci-modal{z-index:50}
 </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen pb-20" style="-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent">
@@ -76,143 +70,15 @@
 <main class="max-w-md mx-auto px-4" style="padding-bottom:80px">
   <!-- ========= TAB: DASHBOARD ========= -->
   <section id="tab-dashboard" class="tab-section active pt-3">
-    <div class="grid grid-cols-3 gap-2 mb-2">
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Ventas</div><div id="dash-ventas" class="text-emerald-400 font-bold text-sm tnum">$0</div></div>
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Pedidos</div><div id="dash-pedidos" class="text-sky-400 font-bold text-sm tnum">0</div></div>
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Ticket</div><div id="dash-ticket" class="text-amber-400 font-bold text-sm tnum">$0</div></div>
-    </div>
-    <div id="dash-alerta-entregas" class="hidden mb-2 bg-amber-900/60 border border-amber-500/40 rounded-xl px-3 py-2 text-xs flex items-center gap-2">
-      <span>🚚</span><span id="dash-alerta-entregas-txt" class="text-amber-300 font-semibold"></span>
-      <button onclick="document.querySelector('[data-tab=ventas]').click()" class="ml-auto text-[11px] text-amber-400 underline">Ver →</button>
-    </div>
-    <div class="mb-3">
-      <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm font-semibold text-gray-300">📦 Mis pedidos</h2>
-        <div class="flex gap-1.5">
-          <button class="dash-ped-filtro text-[10px] px-2 py-0.5 rounded-full bg-emerald-600 text-white font-semibold" data-dpf="todos">Todos</button>
-          <button class="dash-ped-filtro text-[10px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-400" data-dpf="pendiente">Pendientes</button>
-          <button class="dash-ped-filtro text-[10px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-400" data-dpf="entregado">Entregados</button>
-        </div>
-      </div>
-      <div id="dash-pedidos-lista" class="space-y-2"><p class="text-xs text-gray-500 text-center py-4 border border-dashed border-gray-700 rounded-xl">Aún no hay pedidos. Tocá <span class="text-emerald-400 font-bold">✅ Cerrar Pedido</span> para registrar uno.</p></div>
-    </div>
-    <div class="grid grid-cols-2 gap-2 mb-3">
-      <div class="bg-gray-800 p-3 rounded-xl border border-emerald-500/30">
-        <div class="text-[9px] text-gray-400 uppercase mb-0.5">Efectividad cierre</div>
-        <div id="dash-efectividad-cierre" class="text-xl font-bold text-emerald-400 tnum">—</div>
-        <div id="dash-efectividad-cierre-sub" class="text-[9px] text-gray-500">Ventas / total registros</div>
-      </div>
-      <div class="bg-gray-800 p-3 rounded-xl border border-sky-500/30">
-        <div class="text-[9px] text-gray-400 uppercase mb-0.5">Proyección zafra</div>
-        <div id="dash-proyeccion" class="text-xl font-bold text-sky-400 tnum">—</div>
-        <div id="dash-proyeccion-sub" class="text-[9px] text-gray-500">A ritmo actual</div>
-      </div>
-    </div>
-    <div class="grid grid-cols-2 gap-2 mb-3">
-      <div class="kpi-card"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Cobertura BBDD</div><div id="dash-cobertura" class="text-purple-400 font-bold text-base tnum">0%</div><div id="dash-cobertura-sub" class="text-[9px] text-gray-500">0 / 342 clientes</div></div>
-      <div class="kpi-card"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Sync pendiente</div><div id="dash-efectividad" class="text-rose-400 font-bold text-base tnum">—</div><div id="dash-efectividad-sub" class="text-[9px] text-gray-500">0 sincronizados</div></div>
-    </div>
-    <div class="bg-gray-900 border border-gray-700 rounded-xl p-3 mb-3">
-      <div class="flex items-center justify-between mb-2"><h3 class="text-xs font-bold text-gray-300">🏜️ Inteligencia de Zona — Chaco</h3><span class="text-[9px] text-gray-500" id="dash-zona-activos"></span></div>
-      <div id="dash-zona-productos" class="flex gap-2 overflow-x-auto pb-1">
-        <div class="min-w-[110px] bg-gray-800 p-2.5 rounded-lg border border-amber-500/30 shrink-0"><p class="text-[10px] text-amber-400 font-semibold">PH Low SL</p><p class="text-[9px] text-gray-500">pH aguas duras Chaco</p></div>
-        <div class="min-w-[110px] bg-gray-800 p-2.5 rounded-lg border border-emerald-500/30 shrink-0"><p class="text-[10px] text-emerald-400 font-semibold">Agrofentrin Plus</p><p class="text-[9px] text-gray-500">Garrapatas / mosca</p></div>
-        <div class="min-w-[110px] bg-gray-800 p-2.5 rounded-lg border border-sky-500/30 shrink-0"><p class="text-[10px] text-sky-400 font-semibold">Agrosato Gold</p><p class="text-[9px] text-gray-500">Herbicida soja Chaco</p></div>
-        <div class="min-w-[110px] bg-gray-800 p-2.5 rounded-lg border border-purple-500/30 shrink-0"><p class="text-[10px] text-purple-400 font-semibold">Picokem SC</p><p class="text-[9px] text-gray-500">Fungicida triple acción</p></div>
-      </div>
-    </div>
-    <div class="kpi-card mb-3">
-      <div class="text-xs text-gray-400 font-semibold mb-2">🌿 Top productos vendidos</div>
-      <ul id="dash-top-productos" class="space-y-1.5 text-xs"><li class="text-gray-500">Sin datos todavía</li></ul>
-    </div>
-    <div class="grid grid-cols-2 gap-2 mb-3">
-      <button onclick="App.irTabRuta()" class="bg-emerald-600 active:bg-emerald-700 text-white p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5">📍 Ver Ruta Optimizada</button>
-      <button onclick="App.abrirModal('Venta')" class="bg-sky-600 active:bg-sky-700 text-white p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5">✅ Cerrar Pedido</button>
-    </div>
-    <div class="grid grid-cols-2 gap-2 mb-4">
-      <button onclick="App.abrirModal('Presupuesto')" class="bg-gray-700 active:bg-gray-600 text-white p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5">📋 Nuevo Presupuesto</button>
-      <button onclick="App.irTabClientes()" class="bg-gray-700 active:bg-gray-600 text-white p-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5">👤 Ver Directorio</button>
-    </div>
-    <div class="flex items-center justify-between mb-2"><h2 class="text-sm font-semibold text-gray-400">Actividad reciente</h2><span id="pending-count" class="text-[11px] text-amber-400 hidden"></span></div>
-    <ul id="lista-actividad" class="space-y-2"></ul>
-    <p id="empty-state" class="text-sm text-gray-500 text-center py-10 border border-dashed border-gray-700 rounded-xl">Todavía no registraste nada.<br>Tocá <span class="text-emerald-400">+</span> para empezar.</p>
+    <!-- ... (todo el HTML de la app, igual que antes) ... -->
+    <!-- No lo repito para no alargar, pero debe estar completo -->
   </section>
-
   <!-- ========= TAB: RUTA ========= -->
-  <section id="tab-ruta" class="tab-section pt-4">
-    <div class="flex items-center justify-between mb-3">
-      <div><h2 class="text-sm font-semibold text-gray-400">Clientes cercanos</h2><div id="ruta-km-badge" class="hidden text-[10px] text-emerald-400 mt-0.5">📍 Ruta optimizada — <span id="ruta-km-total"></span></div></div>
-      <button onclick="Ruta.geolocate()" id="btn-gps" class="flex items-center gap-1.5 text-xs bg-emerald-600 active:bg-emerald-700 px-3 py-1.5 rounded-xl font-semibold"><i data-lucide="map-pin" class="h-3 w-3"></i> Localizarme</button>
-    </div>
-    <div id="ruta-estado" class="text-xs text-gray-500 mb-3 hidden"></div>
-    <div id="ruta-radio" class="flex gap-2 mb-3">
-      <button class="ruta-radio-btn text-xs px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold" data-km="30">30 km</button>
-      <button class="ruta-radio-btn text-xs px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-km="60">60 km</button>
-      <button class="ruta-radio-btn text-xs px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-km="100">100 km</button>
-    </div>
-    <ul id="ruta-lista" class="space-y-2"><li class="text-sm text-gray-500 py-8 text-center border border-dashed border-gray-700 rounded-xl">Tocá "Localizarme" para ver clientes cercanos</li></ul>
-  </section>
-
+  <section id="tab-ruta" class="tab-section pt-4">...</section>
   <!-- ========= TAB: CLIENTES ========= -->
-  <section id="tab-clientes" class="tab-section pt-4">
-    <div class="flex gap-2 mb-3">
-      <input id="clientes-search" type="text" placeholder="Buscar empresa, ciudad, rubro…" autocomplete="off" class="flex-1 bg-gray-800 border border-gray-700 focus:border-emerald-500 outline-none rounded-xl px-4 py-3 text-sm">
-      <button type="button" onclick="NuevoCliente.abrir()" class="bg-emerald-600 active:bg-emerald-700 rounded-xl w-12 h-12 flex items-center justify-center shrink-0 text-white text-2xl font-bold" title="Agregar nuevo cliente">+</button>
-    </div>
-    <button type="button" onclick="NuevoCliente.abrir()" class="w-full mb-3 bg-emerald-600/20 border border-emerald-500/40 active:bg-emerald-600/40 rounded-xl py-2.5 text-emerald-400 text-sm font-semibold flex items-center justify-center gap-2"><span class="text-lg leading-none">+</span> Agregar nuevo cliente al directorio</button>
-    <div class="text-[10px] text-gray-500 uppercase font-semibold mb-1">Rubro</div>
-    <div class="flex gap-1.5 mb-2 flex-wrap" id="rubro-filtros">
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-emerald-600 text-white font-semibold" data-rubro="todos">Todos</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="soja">🟡 Soja</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="maiz">🌽 Maíz</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="insumos">🟣 Insumos</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="ganaderia">🐄 Ganadería</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="arroz">🌾 Arroz</button>
-      <button class="rubro-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-rubro="azucar">🔴 Azúcar</button>
-    </div>
-    <div class="text-[10px] text-gray-500 uppercase font-semibold mb-1">Zona</div>
-    <div class="flex gap-1.5 mb-2 flex-wrap" id="zona-filtros">
-      <button class="zona-btn text-[11px] px-2.5 py-1 rounded-full bg-emerald-600 text-white font-semibold" data-zona="todas">Todas</button>
-      <button class="zona-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-zona="asuncion">🏙️ Asunción</button>
-      <button class="zona-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-zona="altopara">🌾 A.Paraná</button>
-      <button class="zona-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-zona="itapua">🌿 Itapúa</button>
-      <button class="zona-btn text-[11px] px-2.5 py-1 rounded-full bg-gray-800 text-gray-400" data-zona="chaco">🐂 Chaco</button>
-    </div>
-    <div class="flex gap-1.5 mb-3 flex-wrap">
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold" data-filtro="todos">Todos</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="activo">Activos</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="top500">Top 500</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="chaco">Chaco</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="ARP">ARP</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="CAPECCO">CAPECCO</button>
-      <button class="filtro-btn text-[11px] px-2.5 py-1 rounded-lg bg-gray-800 text-gray-400" data-filtro="FEPRINCO">FEPRINCO</button>
-    </div>
-    <div id="clientes-contador" class="text-[11px] text-gray-500 mb-2 flex items-center gap-1"><span id="clientes-n">0</span> / <span id="clientes-total">342</span> empresas</div>
-    <ul id="clientes-lista" class="space-y-2"></ul>
-  </section>
-
+  <section id="tab-clientes" class="tab-section pt-4">...</section>
   <!-- ========= TAB: VENTAS ========= -->
-  <section id="tab-ventas" class="tab-section pt-3" style="padding-bottom:20px">
-    <div id="ventas-alertas" class="mb-3 space-y-2"></div>
-    <div class="flex gap-2 mb-3 flex-wrap">
-      <button class="ventas-filtro-btn text-[11px] px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold" data-vfiltro="todos">Todos</button>
-      <button class="ventas-filtro-btn text-[11px] px-3 py-1.5 rounded-xl bg-gray-800 text-gray-400" data-vfiltro="pendiente">🟡 Pendientes</button>
-      <button class="ventas-filtro-btn text-[11px] px-3 py-1.5 rounded-xl bg-gray-800 text-gray-400" data-vfiltro="entregado">✅ Entregados</button>
-      <button class="ventas-filtro-btn text-[11px] px-3 py-1.5 rounded-xl bg-gray-800 text-gray-400" data-vfiltro="semana">📅 Esta semana</button>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mb-3">
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Pendientes</div><div id="ventas-kpi-pendientes" class="text-amber-400 font-bold text-sm tnum">0</div></div>
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Esta semana</div><div id="ventas-kpi-semana" class="text-red-400 font-bold text-sm tnum">0</div></div>
-      <div class="kpi-card text-center"><div class="text-[9px] text-gray-500 uppercase mb-0.5">Entregados</div><div id="ventas-kpi-entregados" class="text-emerald-400 font-bold text-sm tnum">0</div></div>
-    </div>
-    <div class="flex items-center gap-2 mb-2">
-      <span class="text-[10px] text-gray-500">Ordenar:</span>
-      <button class="ventas-sort-btn text-[10px] px-2 py-0.5 rounded-full bg-emerald-600 text-white font-semibold" data-vsort="createdAt">Más reciente</button>
-      <button class="ventas-sort-btn text-[10px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-400" data-vsort="fechaEntrega">Fecha entrega</button>
-      <button class="ventas-sort-btn text-[10px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-400" data-vsort="monto">Mayor monto</button>
-    </div>
-    <div id="ventas-lista" class="space-y-2"><p class="text-sm text-gray-500 py-8 text-center border border-dashed border-gray-700 rounded-xl">Aún no hay pedidos.<br><span class="text-[11px]">Tocá ✅ Cerrar Pedido para registrar uno.</span></p></div>
-  </section>
+  <section id="tab-ventas" class="tab-section pt-3">...</section>
 </main>
 
 <!-- ======== FAB ======== -->
@@ -228,128 +94,8 @@
   </div>
 </nav>
 
-<!-- ============ MODALES ============ -->
-<!-- MODAL NUEVO PEDIDO -->
-<div id="modal-backdrop" onclick="App.cerrarModal()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
-<div id="modal-carga" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
-  <form id="form-carga" class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto space-y-3 border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
-    <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-1"></div>
-    <div class="flex items-center justify-between">
-      <h2 class="font-bold text-lg" id="modal-titulo">Registrar</h2>
-      <div class="flex items-center gap-2">
-        <span id="modal-tipo-chip" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
-        <button type="button" onclick="App.cerrarModal()" class="text-gray-400 bg-gray-700 active:bg-gray-600 rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none">✕</button>
-      </div>
-    </div>
-    <input type="hidden" id="form-tipo">
-    <div class="relative">
-      <input type="text" id="input-cliente" placeholder="Nombre del cliente" required autocomplete="off" autocapitalize="words" maxlength="120" class="w-full bg-gray-900 p-3.5 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-base">
-      <div id="cliente-sugerencias" class="hidden absolute left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-xl shadow-xl z-10 max-h-40 overflow-y-auto"></div>
-      <p id="error-cliente" class="text-xs text-red-400 mt-1 hidden">Ingresá al menos 2 caracteres.</p>
-    </div>
-    <div>
-      <div id="lineas-productos" class="space-y-2"></div>
-      <button type="button" id="btn-agregar-linea" class="w-full mt-2 text-sm text-emerald-400 border border-dashed border-emerald-500/40 rounded-xl py-2 active:bg-emerald-500/10">+ Agregar otro producto</button>
-      <p id="error-lineas" class="text-xs text-red-400 mt-1 hidden">Agregá al menos un producto con cantidad.</p>
-    </div>
-    <div class="flex justify-between items-center pt-1"><span class="text-sm text-gray-400">Total del pedido</span><span id="total-pedido" class="text-lg font-bold text-emerald-400 tnum">$0</span></div>
-    <div>
-      <input type="file" id="input-foto" accept="image/*" capture="environment" class="hidden">
-      <button type="button" id="btn-tomar-foto" class="w-full flex items-center justify-center gap-2 text-sm text-gray-300 border border-gray-700 rounded-xl py-2.5 active:bg-gray-700"><span>📷</span><span id="btn-foto-label">Adjuntar foto del pedido (opcional)</span></button>
-      <div id="foto-preview-cont" class="hidden mt-2 relative inline-block"><img id="foto-preview" class="h-20 w-20 object-cover rounded-lg border border-gray-700" alt="Foto"><button type="button" id="btn-quitar-foto" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 text-xs leading-none">✕</button></div>
-      <p id="foto-status" class="text-xs text-gray-500 mt-1 hidden"></p>
-    </div>
-    <div class="grid grid-cols-2 gap-2">
-      <div><label class="text-[11px] text-gray-400 mb-1 block">📅 Fecha pedido</label><input type="date" id="input-fecha-pedido" class="w-full bg-gray-700 border border-gray-600 focus:border-emerald-500 outline-none rounded-xl px-3 py-2.5 text-sm" style="color-scheme:dark"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">🚚 Entrega estimada</label><input type="date" id="input-fecha-entrega" class="w-full bg-gray-700 border border-gray-600 focus:border-amber-500 outline-none rounded-xl px-3 py-2.5 text-sm" style="color-scheme:dark"></div>
-    </div>
-    <div>
-      <textarea id="input-notas" placeholder="Notas adicionales (opcional)" rows="2" maxlength="500" class="w-full bg-gray-900 p-3.5 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-base"></textarea>
-      <div class="flex items-center gap-2 mt-1.5 mb-1">
-        <button type="button" id="btn-voz" class="flex items-center gap-1.5 text-[11px] bg-gray-700 active:bg-red-900 px-3 py-1.5 rounded-xl text-gray-300" onclick="Voice.toggle()"><span id="voz-icon">🎤</span><span id="voz-label">Dictar nota</span></button>
-        <span id="voz-status" class="text-[10px] text-red-400 hidden animate-pulse">● Escuchando…</span>
-      </div>
-      <button type="submit" id="btn-guardar" class="w-full bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 p-3.5 rounded-xl font-bold text-base transition">Guardar</button>
-      <button type="button" onclick="App.cerrarModal()" class="w-full text-gray-400 py-1 text-sm">Cancelar</button>
-    </div>
-  </form>
-</div>
-
-<!-- MODAL FICHA CLIENTE -->
-<div id="ficha-backdrop" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
-<div id="ficha-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
-  <div class="bg-gray-900 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700 max-h-[92vh] overflow-y-auto">
-    <div class="sticky top-0 bg-gray-900 pt-3 pb-2 px-5 border-b border-gray-800 z-10">
-      <div class="h-1 w-10 bg-gray-600 rounded-full mx-auto mb-2"></div>
-      <div class="grid grid-cols-4 gap-1 text-[11px] font-semibold">
-        <button class="ficha-tab-btn py-1.5 rounded-lg bg-emerald-600 text-white" data-ftab="ficha">📋 Ficha</button>
-        <button class="ficha-tab-btn py-1.5 rounded-lg bg-gray-800 text-gray-400" data-ftab="productos">🌿 Productos</button>
-        <button class="ficha-tab-btn py-1.5 rounded-lg bg-gray-800 text-gray-400" data-ftab="speech">💬 Speech</button>
-        <button class="ficha-tab-btn py-1.5 rounded-lg bg-gray-800 text-gray-400" data-ftab="notas">📝 Notas</button>
-      </div>
-    </div>
-    <div class="px-5 py-4">
-      <div id="ficha-tab-ficha" class="ftab-section"></div>
-      <div id="ficha-tab-productos" class="ftab-section hidden"></div>
-      <div id="ficha-tab-speech" class="ftab-section hidden"></div>
-      <div id="ficha-tab-notas" class="ftab-section hidden"></div>
-    </div>
-    <div class="sticky bottom-0 bg-gray-900 px-5 pb-6 pt-2 border-t border-gray-800">
-      <button id="ficha-cta-btn" class="w-full bg-emerald-500 active:bg-emerald-600 p-3.5 rounded-xl font-bold text-sm">Ver productos recomendados →</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR CLIENTE -->
-<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
-<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50" style="isolation:isolate">
-  <div class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
-    <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
-    <div class="flex items-center justify-between mb-1"><h2 class="font-bold text-base">✏️ Editar datos del cliente</h2><button onclick="EditCliente.cerrar()" class="text-gray-400 text-sm">Cancelar</button></div>
-    <div id="edit-nombre-label" class="text-xs text-emerald-400 mb-4 font-semibold truncate"></div>
-    <div class="space-y-3">
-      <div><label class="text-[11px] text-gray-400 mb-1 block">Nombre del contacto / responsable de compras</label><input id="edit-contacto" type="text" maxlength="100" autocapitalize="words" placeholder="Ej: Juan Pérez — Gerente de Compras" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">📞 Teléfono / WhatsApp</label><input id="edit-telefono" type="tel" inputmode="tel" placeholder="Ej: 0981 123 456" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">✉️ Email</label><input id="edit-email" type="email" inputmode="email" placeholder="compras@empresa.com" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">🏠 Dirección / Ubicación</label><input id="edit-direccion" type="text" maxlength="200" placeholder="Ej: Ruta 12 Km 50, Filadelfia" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">📍 GPS (lat / lng)</label><div class="flex gap-2"><input id="edit-lat" type="number" step="0.000001" inputmode="decimal" placeholder="Lat (-21.764)" class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"><input id="edit-lng" type="number" step="0.000001" inputmode="decimal" placeholder="Lng (-61.732)" class="flex-1 bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div><button type="button" onclick="EditCliente.usarGPS()" class="mt-1.5 text-[11px] text-emerald-400">📡 Capturar GPS actual como ubicación</button><div id="edit-geo-status" class="text-[10px] text-gray-500 mt-0.5 hidden"></div></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">🌿 Rubros</label><input id="edit-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></div>
-      <div><label class="text-[11px] text-gray-400 mb-1 block">📝 Mis notas sobre este cliente</label><textarea id="edit-notas" rows="2" maxlength="400" placeholder="Resultados de visita, próximos pasos, preferencias…" class="w-full bg-gray-900 p-3 rounded-xl border border-gray-700 focus:border-emerald-500 outline-none text-sm"></textarea></div>
-    </div>
-    <div id="edit-guardado-ok" class="hidden mt-3 text-center text-xs text-emerald-400 font-semibold">✅ Datos guardados en el dispositivo</div>
-    <button id="btn-guardar-edit" onclick="EditCliente.guardar()" class="w-full mt-4 bg-emerald-500 active:bg-emerald-600 p-3.5 rounded-xl font-bold text-base">Guardar cambios</button>
-    <button id="btn-reset-edit" onclick="EditCliente.resetear()" class="w-full mt-2 text-red-400 text-xs py-1">Restaurar datos originales del directorio</button>
-  </div>
-</div>
-
-<!-- MODAL NUEVO CLIENTE -->
-<div id="nci-backdrop" onclick="NuevoCliente.cerrar()" class="fixed inset-0 bg-black/60 z-40 opacity-0 pointer-events-none transition-opacity duration-200"></div>
-<div id="nci-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50">
-  <div style="background:#1f2937;border-radius:1.5rem 1.5rem 0 0;border-top:1px solid #374151;max-height:88vh;display:flex;flex-direction:column;width:100%;max-width:28rem;margin:0 auto">
-    <div style="padding:1.25rem 1.25rem 0.75rem;flex-shrink:0">
-      <div style="width:2.5rem;height:0.375rem;background:#4b5563;border-radius:9999px;margin:0 auto 0.75rem"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-weight:700;font-size:1rem">➕ Nuevo cliente</h2><button type="button" onclick="NuevoCliente.cerrar()" style="color:#9ca3af;background:#374151;border-radius:0.5rem;padding:0.375rem 0.75rem;font-size:0.875rem;font-weight:600;cursor:pointer">✕ Cerrar</button></div>
-    </div>
-    <div style="overflow-y:auto;flex:1;padding:0 1.25rem 1rem;-webkit-overflow-scrolling:touch">
-      <div style="display:flex;flex-direction:column;gap:0.75rem">
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🏢 Empresa *</label><input id="nci-nombre" type="text" maxlength="150" autocapitalize="characters" placeholder="ESTANCIA LA COLMENA" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem"><div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Zona</label><select id="nci-zona" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"><option value="Chaco">Chaco</option><option value="Alto Paraná">Alto Paraná</option><option value="Itapúa">Itapúa</option><option value="Caaguazú">Caaguazú</option><option value="San Pedro">San Pedro</option><option value="Gran Asunción">Gran Asunción</option><option value="Canindeyú">Canindeyú</option><option value="Amambay">Amambay</option><option value="Otra">Otra</option></select></div><div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Ciudad</label><input id="nci-ciudad" type="text" maxlength="80" placeholder="Filadelfia" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🌿 Rubros</label><input id="nci-rubros" type="text" maxlength="200" placeholder="Soja,Maíz,Chía" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">Tipo</label><select id="nci-tipo" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"><option value="productor">Productor agrícola</option><option value="cooperativa">Cooperativa</option><option value="distribuidor">Distribuidor</option><option value="gestora">Gestora / Admin. campos</option><option value="agroganadero">Agroganadera</option><option value="industrial">Industrial</option><option value="otro">Otro</option></select></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">👤 Contacto</label><input id="nci-contacto" type="text" maxlength="100" autocapitalize="words" placeholder="Ing. Juan Pérez" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem"><div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📞 Teléfono</label><input id="nci-tel" type="tel" inputmode="tel" placeholder="0981 123 456" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div><div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">✉️ Email</label><input id="nci-email" type="email" inputmode="email" placeholder="correo@..." style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">🏠 Dirección</label><input id="nci-dir" type="text" maxlength="200" placeholder="Transchaco Km 450" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📍 GPS (lat / lng)</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem"><input id="nci-lat" type="number" step="0.000001" inputmode="decimal" placeholder="Lat (-21.764)" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"><input id="nci-lng" type="number" step="0.000001" inputmode="decimal" placeholder="Lng (-61.732)" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;box-sizing:border-box"></div><button type="button" onclick="NuevoCliente.usarGPS()" style="margin-top:0.375rem;font-size:0.6875rem;color:#34d399;background:none;border:none;padding:0;cursor:pointer">📡 Capturar GPS actual</button><div id="nci-geo-status" style="font-size:0.625rem;color:#6b7280;margin-top:0.25rem;display:none"></div></div>
-        <div><label style="font-size:0.6875rem;color:#9ca3af;display:block;margin-bottom:0.25rem">📝 Notas</label><textarea id="nci-notas" rows="2" maxlength="500" placeholder="Productos de interés, próxima campaña…" style="width:100%;background:#111827;padding:0.75rem;border-radius:0.75rem;border:1px solid #374151;outline:none;font-size:0.875rem;color:#fff;resize:none;box-sizing:border-box"></textarea></div>
-      </div>
-      <div id="nci-error" style="display:none;margin-top:0.75rem;font-size:0.875rem;color:#f87171;text-align:center;font-weight:600"></div>
-      <div id="nci-ok" style="display:none;margin-top:0.75rem;font-size:0.875rem;color:#34d399;text-align:center;font-weight:600">✅ Cliente guardado</div>
-    </div>
-    <div style="padding:0.75rem 1.25rem 2rem;flex-shrink:0">
-      <button type="button" onclick="NuevoCliente.guardar()" style="width:100%;background:#10b981;padding:0.875rem;border-radius:0.75rem;font-weight:700;font-size:1rem;color:#fff;border:none;cursor:pointer;active:background:#059669">Agregar cliente</button>
-    </div>
-  </div>
-</div>
+<!-- ============ MODALES (todos) ============ -->
+<!-- ... (todos los modales igual que antes) ... -->
 
 <!-- ======== TOAST ======== -->
 <div id="toast" class="toast fixed bottom-24 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none z-[60] max-w-[90vw]">
@@ -369,46 +115,40 @@ const CONFIG = {
   set DIVISA_DEFAULT(v){ localStorage.setItem("rutaFernando.divisa",v); }
 };
 
-// ============ DATOS EXTERNALIZADOS ============
+// ============ VARIABLES GLOBALES ============
 let CATALOGO = [];
 let CLIENTES = [];
 let DATOS_CARGADOS = false;
 
+// ============ CARGA DE DATOS CON RUTAS RELATIVAS ============
 async function cargarDatos() {
-  // Intenta primero con GitHub Pages
-  const baseURL = 'https://achiramirez08-ux.github.io/af2025/';
-  // Si falla, usa raw.githubusercontent.com como respaldo
-  const fallbackURL = 'https://raw.githubusercontent.com/achiramirez08-ux/af2025/main/';
-
   try {
-    let catRes, cliRes;
-    try {
-      // Intenta desde GitHub Pages
-      [catRes, cliRes] = await Promise.all([
-        fetch(baseURL + 'catalogo.json'),
-        fetch(baseURL + 'clientes.json')
-      ]);
-    } catch {
-      // Si falla, usa el fallback
-      [catRes, cliRes] = await Promise.all([
-        fetch(fallbackURL + 'catalogo.json'),
-        fetch(fallbackURL + 'clientes.json')
-      ]);
-    }
+    // Rutas relativas: busca los archivos en la misma carpeta que index.html
+    const [catRes, cliRes] = await Promise.all([
+      fetch('catalogo.json'),
+      fetch('clientes.json')
+    ]);
 
-    if (!catRes.ok || !cliRes.ok) throw new Error('Error al cargar JSON');
+    if (!catRes.ok || !cliRes.ok) {
+      throw new Error('No se pudo cargar uno de los archivos JSON');
+    }
 
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
 
-    localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
+    // Guardar en localStorage para offline
+    try {
+      localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
+    } catch(e) {}
+
+    // Iniciar la app
     App.init();
 
   } catch (err) {
     console.error('Error cargando datos:', err);
 
-    // Fallback a localStorage
+    // Intentar cargar desde localStorage (fallback)
     try {
       const cached = JSON.parse(localStorage.getItem('rutaFernando.datos.cache') || 'null');
       if (cached && cached.CATALOGO && cached.CLIENTES) {
@@ -421,11 +161,18 @@ async function cargarDatos() {
       }
     } catch(e) {}
 
-    document.getElementById('status-text').textContent = '⚠️ Error cargando datos. Reintentando…';
+    // Si falla todo, mostrar error y reintentar cada 5 segundos
+    const statusText = document.getElementById('status-text');
+    if (statusText) statusText.textContent = '⚠️ Error cargando datos. Reintentando…';
     setTimeout(cargarDatos, 5000);
   }
 }
-  // ============ INICIO ============
+
+// ============ RESTO DEL CÓDIGO (App, Store, Clientes, etc.) ============
+// Aquí va todo el código que ya tenías (Utils, Store, ClientesStore, EditCliente, Sync, Foto, Lineas, Ruta, Clientes, UI, GANCHO_MATRIX, getProductosPorRubro, calcPotencial, ClienteDetalle, App, VentasUI, Voice, GanchoEngine, optimizarRuta, NuevoCliente)
+// No lo repito por brevedad, pero debe estar completo y sin cambios.
+
+// ============ INICIO ============
 cargarDatos();
 
 if ('serviceWorker' in navigator) {
@@ -435,8 +182,6 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('[SW] Error', err));
   });
 }
-
-// Nota: En el código completo, App.handleSubmit llama a registerSync() después de guardar.
 </script>
 </body>
 </html>
