@@ -375,19 +375,26 @@ let CLIENTES = [];
 let DATOS_CARGADOS = false;
 
 async function cargarDatos() {
+  // Construir la URL base a partir de la ubicación actual
+  const baseURL = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+  // Si prefieres fijar la URL exacta, puedes usar:
+  // const baseURL = 'https://achiramirez08-ux.github.io/af2025/';
+
   try {
     const [catRes, cliRes] = await Promise.all([
-      fetch('catalogo.json'),
-      fetch('clientes.json')
+      fetch(baseURL + 'catalogo.json'),
+      fetch(baseURL + 'clientes.json')
     ]);
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
-    localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
+    // Cachear datos en localStorage
+    try { localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES })); } catch(e) {}
+    // Iniciar app
     App.init();
   } catch (err) {
     console.error('Error cargando datos:', err);
-    // Intentar cargar desde localStorage
+    // Fallback: intentar desde localStorage
     try {
       const cached = JSON.parse(localStorage.getItem('rutaFernando.datos.cache') || 'null');
       if (cached && cached.CATALOGO && cached.CLIENTES) {
@@ -399,12 +406,10 @@ async function cargarDatos() {
         return;
       }
     } catch(e) {}
-    // Si falla, mostrar mensaje y reintentar
     document.getElementById('status-text').textContent = '⚠️ Error cargando datos. Reintentando…';
     setTimeout(cargarDatos, 5000);
   }
 }
-
 // ============ INICIO ============
 cargarDatos();
 
