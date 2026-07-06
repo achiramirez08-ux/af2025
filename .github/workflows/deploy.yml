@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "Verificando archivos del repositorio..."
           test -f index.html && echo "✅ index.html" || (echo "❌ Falta index.html" && exit 1)
-          test -f sw.js     && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado (offline no disponible)"
+          test -f sw.js     && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado"
           test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
           echo "---"
           echo "Tamaño de index.html: $(du -sh index.html | cut -f1)"
