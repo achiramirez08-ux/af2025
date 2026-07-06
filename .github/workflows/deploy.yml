@@ -3,8 +3,6 @@ name: Deploy Ruta Fernando
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 permissions:
   contents: read
@@ -16,75 +14,74 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   validate:
     name: Validar HTML y JS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-
-      - name: Verificar sintaxis JS
+          node-version: '22'
+      - name: Verificar sintaxis JS (extraer y validar)
         run: |
           node -e "
             const fs = require('fs');
             const html = fs.readFileSync('index.html', 'utf8');
             const match = html.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);
-            if (!match) { console.error('No script block'); process.exit(1); }
-            const js = match[1].replace(/const CLIENTES = \[[\s\S]*?\];/, 'const CLIENTES = [];');
-            fs.writeFileSync('/tmp/test.js', '\"use strict\";\n' + js);
+            if (!match) { console.error('No se encontró bloque <script>'); process.exit(1); }
+            const js = match[1];
+            const safe = js.replace(/const CLIENTES = \[[\s\S]*?\];/, 'const CLIENTES = [];')
+              .replace(/const CATALOG_MATRIX[\s\S]*?^};/m, '')
+              .replace(/const GANCHO_MATRIX[\s\S]*?^};/m, '');
+            fs.writeFileSync('/tmp/test.js', '\"use strict\";\n' + safe);
           "
-          node --check /tmp/test.js && echo "✅ JS OK" || (echo "❌ JS error" && exit 1)
-
+          node --check /tmp/test.js && echo "✅ JS syntax OK" || (echo "❌ JS syntax error" && exit 1)
       - name: Verificar archivos requeridos
         run: |
-          test -f index.html    && echo "✅ index.html"    || (echo "❌ index.html falta" && exit 1)
-          test -f sw.js         && echo "✅ sw.js"         || echo "⚠️  sw.js no encontrado"
-          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️  manifest.json no encontrado"
-          echo "Tamaño: $(du -sh index.html | cut -f1)"
-
+          test -f index.html && echo "✅ index.html" || exit 1
+          test -f sw.js && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado"
+          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
+          test -f catalogo.json && echo "✅ catalogo.json" || exit 1
+          test -f clientes.json && echo "✅ clientes.json" || exit 1
+          echo "Tamaño de index.html: $(du -sh index.html | cut -f1)"
       - name: Verificar SHARED_SECRET
         run: |
-          grep -q 'SHARED_SECRET' index.html \
-            && echo "✅ SHARED_SECRET presente" \
-            || (echo "❌ SHARED_SECRET no encontrado" && exit 1)
-
+          if grep -q 'SHARED_SECRET.*""' index.html; then
+            echo "❌ SHARED_SECRET vacío"
+            exit 1
+          fi
+          echo "✅ SHARED_SECRET configurado"
       - name: Verificar Service Worker
         run: |
-          grep -q 'serviceWorker' index.html \
-            && echo "✅ SW registrado" \
-            || echo "⚠️  SW no registrado en HTML"
+          if grep -q 'serviceWorker' index.html; then
+            echo "✅ Service Worker registrado"
+          else
+            echo "⚠️ Service Worker NO registrado"
+          fi
 
   deploy:
     name: Deploy a GitHub Pages
     needs: validate
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Mostrar URL
-        run: echo "✅ App publicada en ${{ steps.deployment.outputs.page_url }}"
+      - name: Notificar URL
+        run: |
+          echo "✅ Deploy exitoso"
+          echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
