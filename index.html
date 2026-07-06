@@ -122,33 +122,31 @@ let DATOS_CARGADOS = false;
 
 // ============ CARGA DE DATOS CON RUTAS RELATIVAS ============
 async function cargarDatos() {
+  // URLs directas de GitHub (raw) — 100% confiables
+  const urls = {
+    catalogo: 'https://raw.githubusercontent.com/achiramirez08-ux/af2025/main/catalogo.json',
+    clientes: 'https://raw.githubusercontent.com/achiramirez08-ux/af2025/main/clientes.json'
+  };
+
   try {
-    // Rutas relativas: busca los archivos en la misma carpeta que index.html
     const [catRes, cliRes] = await Promise.all([
-      fetch('catalogo.json'),
-      fetch('clientes.json')
+      fetch(urls.catalogo),
+      fetch(urls.clientes)
     ]);
 
-    if (!catRes.ok || !cliRes.ok) {
-      throw new Error('No se pudo cargar uno de los archivos JSON');
-    }
+    if (!catRes.ok || !cliRes.ok) throw new Error('Error al cargar JSON');
 
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
 
-    // Guardar en localStorage para offline
-    try {
-      localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
-    } catch(e) {}
-
-    // Iniciar la app
+    localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
     App.init();
 
   } catch (err) {
     console.error('Error cargando datos:', err);
 
-    // Intentar cargar desde localStorage (fallback)
+    // Fallback a localStorage
     try {
       const cached = JSON.parse(localStorage.getItem('rutaFernando.datos.cache') || 'null');
       if (cached && cached.CATALOGO && cached.CLIENTES) {
@@ -161,17 +159,10 @@ async function cargarDatos() {
       }
     } catch(e) {}
 
-    // Si falla todo, mostrar error y reintentar cada 5 segundos
-    const statusText = document.getElementById('status-text');
-    if (statusText) statusText.textContent = '⚠️ Error cargando datos. Reintentando…';
+    document.getElementById('status-text').textContent = '⚠️ Error cargando datos. Reintentando…';
     setTimeout(cargarDatos, 5000);
   }
 }
-
-// ============ RESTO DEL CÓDIGO (App, Store, Clientes, etc.) ============
-// Aquí va todo el código que ya tenías (Utils, Store, ClientesStore, EditCliente, Sync, Foto, Lineas, Ruta, Clientes, UI, GANCHO_MATRIX, getProductosPorRubro, calcPotencial, ClienteDetalle, App, VentasUI, Voice, GanchoEngine, optimizarRuta, NuevoCliente)
-// No lo repito por brevedad, pero debe estar completo y sin cambios.
-
 // ============ INICIO ============
 cargarDatos();
 
