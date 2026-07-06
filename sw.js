@@ -1,52 +1,45 @@
 // ============================================================
-// RUTA FERNANDO — Service Worker v1.0
-// Estrategia: Cache-First para assets, Network-First para GAS sync
-// Offline: app carga en <1s desde caché incluso sin señal
+// RUTA FERNANDO — Service Worker v2.0
+// Cache-First + Background Sync para pedidos pendientes
 // ============================================================
 
-const CACHE_NAME    = 'ruta-fernando-v16';
+const CACHE_NAME    = 'ruta-fernando-v17';
 const OFFLINE_URL   = '/index.html';
 
-// Assets a cachear en la instalación (shell de la app)
 const PRECACHE_URLS = [
   '/',
   '/index.html',
+  '/catalogo.json',
+  '/clientes.json',
+  '/manifest.json',
 ];
 
-// ── INSTALL — cachear el shell de la app ────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting()) // activar inmediatamente
+      .then(() => self.skipWaiting())
   );
 });
 
-// ── ACTIVATE — limpiar cachés viejos ────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
       .then(keys => Promise.all(
-        keys
-          .filter(k => k !== CACHE_NAME)
-          .map(k => caches.delete(k))
+        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
       ))
-      .then(() => self.clients.claim()) // tomar control de todas las tabs
+      .then(() => self.clients.claim())
   );
 });
 
-// ── FETCH — estrategia según tipo de request ────────────────────────────────
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 1. Google Apps Script (sync de ventas) → Network-Only
-  //    Si falla, el frontend ya tiene su cola de retry
   if (url.hostname.includes('script.google.com')) {
     event.respondWith(fetch(event.request));
     return;
   }
 
-  // 2. CDN externas (Tailwind, Lucide) → Network-First con fallback a caché
   if (url.hostname.includes('cdn.tailwindcss.com') ||
       url.hostname.includes('unpkg.com')) {
     event.respondWith(
@@ -61,40 +54,45 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 3. App shell (HTML, JS inline) → Cache-First
-  //    Crítico para el Chaco: carga en <1s sin señal
   event.respondWith(
     caches.match(event.request)
       .then(cached => {
+        const fetchAndCache = () => {
+          return fetch(event.request)
+            .then(fresh => {
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, fresh));
+              return fresh;
+            })
+            .catch(() => cached);
+        };
         if (cached) {
-          // Actualizar en background (stale-while-revalidate)
-          fetch(event.request)
-            .then(fresh => caches.open(CACHE_NAME)
-              .then(cache => cache.put(event.request, fresh)))
-            .catch(() => {}); // silencioso si no hay red
+          fetchAndCache();
           return cached;
         }
-        // No está en caché → ir a la red
-        return fetch(event.request)
-          .then(response => {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-            return response;
-          })
-          .catch(() => caches.match(OFFLINE_URL)); // último recurso: página offline
+        return fetchAndCache();
       })
   );
 });
 
-// ── BACKGROUND SYNC — reintentar uploads pendientes ─────────────────────────
-// Cuando el dispositivo recupera señal, el SW notifica a la app
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-ventas') {
     event.waitUntil(
       self.clients.matchAll()
-        .then(clients => clients.forEach(client =>
-          client.postMessage({ type: 'SYNC_READY' })
-        ))
+        .then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ type: 'SYNC_READY' });
+          });
+        })
+    );
+  }
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'REGISTER_SYNC') {
+    event.waitUntil(
+      self.registration.sync.register('sync-ventas')
+        .then(() => console.log('[SW] Sync registrado'))
+        .catch(err => console.warn('[SW] Sync falló', err))
     );
   }
 });
