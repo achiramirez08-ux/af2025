@@ -375,7 +375,7 @@ let CLIENTES = [];
 let DATOS_CARGADOS = false;
 
 async function cargarDatos() {
-  // Usar la URL base de tu sitio (fija para evitar problemas)
+  // Ruta base fija (sin calcular nada, para evitar errores)
   const baseURL = 'https://achiramirez08-ux.github.io/af2025/';
 
   try {
@@ -384,23 +384,21 @@ async function cargarDatos() {
       fetch(baseURL + 'clientes.json')
     ]);
 
-    // Asignar los datos a las variables globales
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
 
-    // Cachear datos en localStorage
-    try { 
-      localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES })); 
+    // Guardar en localStorage para offline
+    try {
+      localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
     } catch(e) {}
 
-    // Iniciar la app
     App.init();
 
   } catch (err) {
     console.error('Error cargando datos:', err);
 
-    // Intentar cargar desde localStorage (fallback)
+    // Fallback a localStorage
     try {
       const cached = JSON.parse(localStorage.getItem('rutaFernando.datos.cache') || 'null');
       if (cached && cached.CATALOGO && cached.CLIENTES) {
@@ -413,7 +411,6 @@ async function cargarDatos() {
       }
     } catch(e) {}
 
-    // Si falla todo, mostrar error y reintentar
     document.getElementById('status-text').textContent = '⚠️ Error cargando datos. Reintentando…';
     setTimeout(cargarDatos, 5000);
   }
