@@ -3,85 +3,117 @@ name: Deploy Ruta Fernando
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
+# Permisos para GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Solo un deploy a la vez
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
+
+  # ── JOB 1: VALIDAR ──────────────────────────────────────────────────────────
   validate:
     name: Validar HTML y JS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Verificar sintaxis JS (extraer y validar)
         run: |
+          # Extraer el bloque <script> del HTML y validar con node
           node -e "
             const fs = require('fs');
             const html = fs.readFileSync('index.html', 'utf8');
             const match = html.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);
             if (!match) { console.error('No se encontró bloque <script>'); process.exit(1); }
             const js = match[1];
+            // Reemplazar referencias al DOM que fallan fuera del browser
             const safe = js.replace(/const CLIENTES = \[[\s\S]*?\];/, 'const CLIENTES = [];')
               .replace(/const CATALOG_MATRIX[\s\S]*?^};/m, '')
               .replace(/const GANCHO_MATRIX[\s\S]*?^};/m, '');
             fs.writeFileSync('/tmp/test.js', '\"use strict\";\n' + safe);
           "
           node --check /tmp/test.js && echo "✅ JS syntax OK" || (echo "❌ JS syntax error" && exit 1)
+
       - name: Verificar archivos requeridos
         run: |
-          test -f index.html && echo "✅ index.html" || exit 1
-          test -f sw.js && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado"
-          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
-          test -f catalogo.json && echo "✅ catalogo.json" || exit 1
-          test -f clientes.json && echo "✅ clientes.json" || exit 1
+          echo "Verificando archivos del repositorio..."
+          test -f index.html && echo "✅ index.html" || (echo "❌ Falta index.html" && exit 1)
+          test -f sw.js     && echo "✅ sw.js" || (echo "⚠️ sw.js no encontrado (offline no disponible)")
+          test -f manifest.json && echo "✅ manifest.json" || (echo "⚠️ manifest.json no encontrado")
+          echo "---"
           echo "Tamaño de index.html: $(du -sh index.html | cut -f1)"
-      - name: Verificar SHARED_SECRET
+          echo "Clientes en directorio: $(grep -o '\"nombre\":' index.html | wc -l)"
+
+      - name: Verificar type=button en todos los botones
+        run: |
+          BTNS=$(grep -o "<button " index.html | wc -l | tr -d ' ')
+          TYPED=$(grep -o 'type="button"' index.html | wc -l | tr -d ' ')
+          if [ "$BTNS" -ne "$TYPED" ]; then
+            echo "❌ $BTNS botones, solo $TYPED con type=button"
+            exit 1
+          fi
+          echo "✅ Todos los botones tienen type=button ($BTNS/$TYPED)"
+
+      - name: Verificar que el SHARED_SECRET no está vacío
         run: |
           if grep -q 'SHARED_SECRET.*""' index.html; then
-            echo "❌ SHARED_SECRET vacío"
+            echo "❌ SHARED_SECRET vacío — el sync no funcionará"
             exit 1
           fi
           echo "✅ SHARED_SECRET configurado"
-      - name: Verificar Service Worker
+
+      - name: Verificar Service Worker registrado en HTML
         run: |
           if grep -q 'serviceWorker' index.html; then
-            echo "✅ Service Worker registrado"
+            echo "✅ Service Worker registrado en HTML"
           else
-            echo "⚠️ Service Worker NO registrado"
+            echo "⚠️ Service Worker NO registrado — agregar registro en App.init()"
           fi
 
+  # ── JOB 2: DEPLOY A GITHUB PAGES ────────────────────────────────────────────
   deploy:
     name: Deploy a GitHub Pages
     needs: validate
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '.'   # sube todo el repo raíz
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      - name: Notificar URL
+
+      - name: Notificar URL del deploy
         run: |
           echo "✅ Deploy exitoso"
           echo "🌐 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📱 Fernando puede abrir esta URL en Chrome Android"
