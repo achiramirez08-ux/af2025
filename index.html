@@ -375,24 +375,34 @@ let CLIENTES = [];
 let DATOS_CARGADOS = false;
 
 async function cargarDatos() {
-  // Ruta base fija (sin calcular nada, para evitar errores)
+  // Intenta primero con GitHub Pages
   const baseURL = 'https://achiramirez08-ux.github.io/af2025/';
+  // Si falla, usa raw.githubusercontent.com como respaldo
+  const fallbackURL = 'https://raw.githubusercontent.com/achiramirez08-ux/af2025/main/';
 
   try {
-    const [catRes, cliRes] = await Promise.all([
-      fetch(baseURL + 'catalogo.json'),
-      fetch(baseURL + 'clientes.json')
-    ]);
+    let catRes, cliRes;
+    try {
+      // Intenta desde GitHub Pages
+      [catRes, cliRes] = await Promise.all([
+        fetch(baseURL + 'catalogo.json'),
+        fetch(baseURL + 'clientes.json')
+      ]);
+    } catch {
+      // Si falla, usa el fallback
+      [catRes, cliRes] = await Promise.all([
+        fetch(fallbackURL + 'catalogo.json'),
+        fetch(fallbackURL + 'clientes.json')
+      ]);
+    }
+
+    if (!catRes.ok || !cliRes.ok) throw new Error('Error al cargar JSON');
 
     CATALOGO = await catRes.json();
     CLIENTES = await cliRes.json();
     DATOS_CARGADOS = true;
 
-    // Guardar en localStorage para offline
-    try {
-      localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
-    } catch(e) {}
-
+    localStorage.setItem('rutaFernando.datos.cache', JSON.stringify({ CATALOGO, CLIENTES }));
     App.init();
 
   } catch (err) {
