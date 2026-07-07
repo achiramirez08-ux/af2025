@@ -895,12 +895,15 @@ const EditCliente = {
     const em = document.getElementById("edit-modal");
     // iOS: quitar sheet-hidden ANTES de setear transform
     em.classList.remove("sheet-hidden");
+    em.style.transform = "translateY(0)";
     eb.classList.remove("opacity-0","pointer-events-none");
     eb.style.opacity = "1";
-    eb.style.pointerEvents = "auto";
-    em.style.transform = "translateY(0)";
-    setTimeout(()=>{ try{ document.getElementById("edit-contacto")?.focus(); }catch(e){} },100);
-    console.log("[EditCliente] modal abierto, transform:", em.style.transform, "classes:", em.className);
+    // Delay pointer-events para evitar click-through del botón que abrió el modal
+    setTimeout(()=>{ 
+      eb.style.pointerEvents = "auto";
+      try{ document.getElementById("edit-contacto")?.focus(); }catch(e){}
+    },350);
+    console.log("[EditCliente] modal abierto ok");
     } catch(err) { console.error("[EditCliente] ERROR en abrir:", err); }
   },
   cerrar(){
@@ -1572,9 +1575,10 @@ const App = {
     const _mbo=document.getElementById("modal-backdrop");
     const _mco=document.getElementById("modal-carga");
     _mbo.classList.remove("opacity-0","pointer-events-none");
-    _mbo.style.opacity="1"; _mbo.style.pointerEvents="auto";
+    _mbo.style.opacity="1";
     _mco.classList.remove("sheet-hidden");
     _mco.style.transform="translateY(0)";
+    setTimeout(()=>{ _mbo.style.pointerEvents="auto"; },350);
     Lineas.reset();Foto.reset();
     setTimeout(()=>document.getElementById("input-cliente").focus(),150);
   },
@@ -2061,9 +2065,9 @@ const NuevoCliente={
     const _nmo=document.getElementById('nci-modal');
     _nbo.classList.remove('opacity-0','pointer-events-none');
     _nbo.style.opacity='1';
-    _nbo.style.pointerEvents='auto';
     _nmo.classList.remove('sheet-hidden');
     _nmo.style.transform='translateY(0)';
+    setTimeout(()=>{ _nbo.style.pointerEvents='auto'; },350);
     // iOS: force reflow then focus
     requestAnimationFrame(()=>{
       _nmo.getBoundingClientRect(); // force reflow
