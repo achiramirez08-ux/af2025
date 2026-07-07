@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111827">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#111827">
 <title>Panel de Ruta 360° · Fernando</title>
@@ -467,8 +467,8 @@
 </div>
 
 <!-- ======== MODAL EDITAR CLIENTE ======== -->
-<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none z-40"></div>
-<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0 z-50" style="isolation:isolate">
+<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none" style="z-index:199"></div>
+<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0" style="z-index:200;isolation:isolate">
   <div class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
     <div class="flex items-center justify-between mb-1">
@@ -874,6 +874,7 @@ const EditCliente = {
   clienteId: null,
   abrir(id){
     console.log("[EditCliente] abrir llamado con id:", id);
+    try {
     const baseC = CLIENTES.find(x=>x.id===id)
       || ClientesStore.mergeAll().find(x=>x.id===id)
       || {id,nombre:'?',telefono:'',email:'',direccion:'',rubros:'',lat:null,lng:null};
@@ -899,6 +900,8 @@ const EditCliente = {
     eb.style.pointerEvents = "auto";
     em.style.transform = "translateY(0)";
     setTimeout(()=>{ try{ document.getElementById("edit-contacto")?.focus(); }catch(e){} },100);
+    console.log("[EditCliente] modal abierto, transform:", em.style.transform, "classes:", em.className);
+    } catch(err) { console.error("[EditCliente] ERROR en abrir:", err); }
   },
   cerrar(){
     const _eb = document.getElementById("edit-backdrop");
