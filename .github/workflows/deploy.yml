@@ -36,17 +36,14 @@ jobs:
           test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
           echo "Tamaño: $(du -sh index.html | cut -f1)"
 
-      - name: Verificar SHARED_SECRET
+      - name: Verificar placeholders configurados
         run: |
-          grep -q 'SHARED_SECRET' index.html \
-            && echo "✅ SHARED_SECRET presente" \
-            || (echo "❌ SHARED_SECRET no encontrado" && exit 1)
-
-      - name: Verificar Service Worker
-        run: |
-          grep -q 'serviceWorker' index.html \
-            && echo "✅ SW registrado" \
-            || echo "⚠️ SW no registrado"
+          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html \
+            && echo "✅ Placeholder GAS_TOKEN presente" \
+            || (echo "❌ GAS_TOKEN_PLACEHOLDER no encontrado en index.html" && exit 1)
+          grep -q 'GAS_URL_PLACEHOLDER' index.html \
+            && echo "✅ Placeholder GAS_URL presente" \
+            || (echo "❌ GAS_URL_PLACEHOLDER no encontrado en index.html" && exit 1)
 
   deploy:
     name: Deploy a GitHub Pages
@@ -62,27 +59,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - name: Inyectar secrets en index.html
+        run: |
+          sed -i "s|GAS_TOKEN_PLACEHOLDER|${{ secrets.GAS_TOKEN }}|g" index.html
+          sed -i "s|GAS_URL_PLACEHOLDER|${{ secrets.GAS_URL }}|g" index.html
+          echo "✅ Secrets inyectados"
+          # Verificar que la inyección funcionó
+          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html \
+            && (echo "❌ Secret GAS_TOKEN no fue inyectado - verificá que el secret existe en GitHub" && exit 1) \
+            || echo "✅ GAS_TOKEN inyectado correctamente"
 
       - name: Generar iconos PWA
         run: |
-          node -e "
-            const { createCanvas } = require('canvas');
-            // canvas module may not be available - use pure JS approach
-            const fs = require('fs');
-            // Create a minimal SVG icon and save as placeholder
-            const svg192 = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"192\" height=\"192\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" fill=\"#1F4E79\"/><text x=\"96\" y=\"120\" font-size=\"80\" text-anchor=\"middle\" fill=\"white\">🌿</text></svg>';
-            fs.writeFileSync('icon.svg', svg192);
-          " 2>/dev/null || true
-          # Generate PNGs from SVG using ImageMagick (available on ubuntu-latest)
-          if command -v convert &> /dev/null; then
-            convert -background none -size 192x192 xc:'#1F4E79' -fill white -gravity center -pointsize 80 -annotate 0 'AF' icon-192.png 2>/dev/null || echo "⚠️ ImageMagick falló, usando placeholder"
-            convert -background none -size 512x512 xc:'#1F4E79' -fill white -gravity center -pointsize 200 -annotate 0 'AF' icon-512.png 2>/dev/null || echo "⚠️ ImageMagick falló, usando placeholder"
-            echo "✅ Iconos generados"
-          else
-            echo "⚠️ ImageMagick no disponible, iconos no generados"
-          fi
+          convert -size 192x192 xc:'#1F4E79' \
+            -fill white -gravity center -pointsize 80 \
+            -annotate 0 'AF' icon-192.png 2>/dev/null \
+            && echo "✅ icon-192.png generado" || echo "⚠️ ImageMagick no disponible"
+          convert -size 512x512 xc:'#1F4E79' \
+            -fill white -gravity center -pointsize 200 \
+            -annotate 0 'AF' icon-512.png 2>/dev/null \
+            && echo "✅ icon-512.png generado" || echo "⚠️ ImageMagick no disponible"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
