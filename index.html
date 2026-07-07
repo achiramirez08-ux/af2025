@@ -873,6 +873,7 @@ const ClientesStore = {
 const EditCliente = {
   clienteId: null,
   abrir(id){
+    console.log("[EditCliente] abrir llamado con id:", id);
     const baseC = CLIENTES.find(x=>x.id===id)
       || ClientesStore.mergeAll().find(x=>x.id===id)
       || {id,nombre:'?',telefono:'',email:'',direccion:'',rubros:'',lat:null,lng:null};
@@ -894,17 +895,19 @@ const EditCliente = {
     // iOS: quitar sheet-hidden ANTES de setear transform
     em.classList.remove("sheet-hidden");
     eb.classList.remove("opacity-0","pointer-events-none");
-    eb.style.cssText = "opacity:1;pointer-events:auto";
-    em.style.cssText = "transform:translateY(0)";
-    setTimeout(()=>{ const el=document.getElementById("edit-contacto"); if(el)el.focus(); },100);
+    eb.style.opacity = "1";
+    eb.style.pointerEvents = "auto";
+    em.style.transform = "translateY(0)";
+    setTimeout(()=>{ try{ document.getElementById("edit-contacto")?.focus(); }catch(e){} },100);
   },
   cerrar(){
     const _eb = document.getElementById("edit-backdrop");
     const _em = document.getElementById("edit-modal");
     _eb.classList.add("opacity-0","pointer-events-none");
-    _eb.style.cssText = "";
+    _eb.style.opacity = "";
+    _eb.style.pointerEvents = "";
     _em.classList.add("sheet-hidden");
-    _em.style.cssText = "";
+    _em.style.transform = "";
     this.clienteId=null;
   },
   guardar(){
@@ -2053,10 +2056,11 @@ const NuevoCliente={
     document.getElementById('nci-geo-status').style.display='none';
     const _nbo=document.getElementById('nci-backdrop');
     const _nmo=document.getElementById('nci-modal');
-    _nbo.style.cssText='opacity:1;pointer-events:auto';
     _nbo.classList.remove('opacity-0','pointer-events-none');
-    _nmo.style.cssText='transform:translateY(0)';
+    _nbo.style.opacity='1';
+    _nbo.style.pointerEvents='auto';
     _nmo.classList.remove('sheet-hidden');
+    _nmo.style.transform='translateY(0)';
     // iOS: force reflow then focus
     requestAnimationFrame(()=>{
       _nmo.getBoundingClientRect(); // force reflow
@@ -2067,9 +2071,10 @@ const NuevoCliente={
     const _nb=document.getElementById('nci-backdrop');
     const _nm=document.getElementById('nci-modal');
     _nb.classList.add('opacity-0','pointer-events-none');
-    _nb.style.cssText='';
+    _nb.style.opacity='';
+    _nb.style.pointerEvents='';
     _nm.classList.add('sheet-hidden');
-    _nm.style.cssText='';
+    _nm.style.transform='';
   },
   usarGPS(){
     const st=document.getElementById('nci-geo-status');
