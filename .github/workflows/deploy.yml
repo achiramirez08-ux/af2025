@@ -65,6 +65,25 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Generar iconos PWA
+        run: |
+          node -e "
+            const { createCanvas } = require('canvas');
+            // canvas module may not be available - use pure JS approach
+            const fs = require('fs');
+            // Create a minimal SVG icon and save as placeholder
+            const svg192 = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"192\" height=\"192\" viewBox=\"0 0 192 192\"><rect width=\"192\" height=\"192\" fill=\"#1F4E79\"/><text x=\"96\" y=\"120\" font-size=\"80\" text-anchor=\"middle\" fill=\"white\">🌿</text></svg>';
+            fs.writeFileSync('icon.svg', svg192);
+          " 2>/dev/null || true
+          # Generate PNGs from SVG using ImageMagick (available on ubuntu-latest)
+          if command -v convert &> /dev/null; then
+            convert -background none -size 192x192 xc:'#1F4E79' -fill white -gravity center -pointsize 80 -annotate 0 'AF' icon-192.png 2>/dev/null || echo "⚠️ ImageMagick falló, usando placeholder"
+            convert -background none -size 512x512 xc:'#1F4E79' -fill white -gravity center -pointsize 200 -annotate 0 'AF' icon-512.png 2>/dev/null || echo "⚠️ ImageMagick falló, usando placeholder"
+            echo "✅ Iconos generados"
+          else
+            echo "⚠️ ImageMagick no disponible, iconos no generados"
+          fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
