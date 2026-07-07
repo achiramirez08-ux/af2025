@@ -467,8 +467,8 @@
 </div>
 
 <!-- ======== MODAL EDITAR CLIENTE ======== -->
-<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none" style="z-index:199"></div>
-<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0" style="z-index:200;isolation:isolate">
+<div id="edit-backdrop" onclick="EditCliente.cerrar()" class="backdrop fixed inset-0 bg-black/70 opacity-0 pointer-events-none" style="z-index:199;display:none"></div>
+<div id="edit-modal" class="sheet sheet-hidden fixed inset-x-0 bottom-0" style="z-index:200;isolation:isolate;display:none">
   <div class="bg-gray-800 p-5 pb-8 rounded-t-3xl w-full max-w-md mx-auto border-t border-gray-700" style="max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="h-1.5 w-10 bg-gray-600 rounded-full mx-auto mb-3"></div>
     <div class="flex items-center justify-between mb-1">
@@ -893,27 +893,36 @@ const EditCliente = {
     document.getElementById("edit-guardado-ok").classList.add("hidden");
     const eb = document.getElementById("edit-backdrop");
     const em = document.getElementById("edit-modal");
-    // iOS: quitar sheet-hidden ANTES de setear transform
-    em.classList.remove("sheet-hidden");
+    // Mostrar con inline styles — no depende de clases CSS
+    em.style.display = "block";
     em.style.transform = "translateY(0)";
-    eb.classList.remove("opacity-0","pointer-events-none");
+    em.style.visibility = "visible";
+    em.style.opacity = "1";
+    em.classList.remove("sheet-hidden");
+    eb.style.display = "block";
     eb.style.opacity = "1";
-    // Delay pointer-events para evitar click-through del botón que abrió el modal
-    setTimeout(()=>{ 
+    eb.style.visibility = "visible";
+    eb.classList.remove("opacity-0","pointer-events-none");
+    setTimeout(()=>{
       eb.style.pointerEvents = "auto";
       try{ document.getElementById("edit-contacto")?.focus(); }catch(e){}
     },350);
-    console.log("[EditCliente] modal abierto ok");
+    console.log("[EditCliente] modal abierto. display:", em.style.display, "transform:", em.style.transform);
     } catch(err) { console.error("[EditCliente] ERROR en abrir:", err); }
   },
   cerrar(){
     const _eb = document.getElementById("edit-backdrop");
     const _em = document.getElementById("edit-modal");
-    _eb.classList.add("opacity-0","pointer-events-none");
-    _eb.style.opacity = "";
-    _eb.style.pointerEvents = "";
-    _em.classList.add("sheet-hidden");
+    _em.style.display = "none";
     _em.style.transform = "";
+    _em.style.visibility = "";
+    _em.style.opacity = "";
+    _em.classList.add("sheet-hidden");
+    _eb.style.display = "none";
+    _eb.style.opacity = "";
+    _eb.style.visibility = "";
+    _eb.style.pointerEvents = "";
+    _eb.classList.add("opacity-0","pointer-events-none");
     this.clienteId=null;
   },
   guardar(){
@@ -1124,7 +1133,7 @@ const Ruta = {
     lista.innerHTML=cercanos.map(c=>Ruta.clienteCard(c,true)).join("");
     lista.querySelectorAll(".btn-wa-ruta").forEach(b=>b.addEventListener("click",()=>Clientes.abrirWA(b.dataset.id)));
     lista.querySelectorAll(".btn-maps-ruta").forEach(b=>b.addEventListener("click",()=>{const c=CLIENTES.find(x=>x.id===b.dataset.id);if(c)window.open(`https://maps.google.com/?daddr=${c.lat},${c.lng}`)}));
-    lista.querySelectorAll(".btn-edit-cliente").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();EditCliente.abrir(b.dataset.id);}));
+    // edit handled by inline onclick in card template
   },
   clienteCard(c, showDist){
     // c ya viene merged (con overrides aplicados)
@@ -1229,7 +1238,7 @@ const Clientes = {
     lista.innerHTML=datos.map(c=>Ruta.clienteCard(c,false)).join("");
     lista.querySelectorAll(".btn-wa-ruta").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();Clientes.abrirWA(b.dataset.id)}));
     lista.querySelectorAll(".btn-maps-ruta").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();const c=CLIENTES.find(x=>x.id===b.dataset.id);if(c)window.open(`https://maps.google.com/?daddr=${c.lat},${c.lng}`)}));
-    lista.querySelectorAll(".btn-edit-cliente").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();EditCliente.abrir(b.dataset.id)}));
+    // edit handled by inline onclick in card template
     // Tap on card body → open ficha
     lista.querySelectorAll("li").forEach(li=>{
       const id=li.querySelector("[data-id]")?.dataset?.id;
