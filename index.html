@@ -746,8 +746,9 @@ const Utils = {
 
 // ============ STORE ============
 const Store = {
-  getAll(){try{return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY))||[]}catch{return[]}},
-  saveAll(r){localStorage.setItem(CONFIG.STORAGE_KEY,JSON.stringify(r))},
+  _vc:null,
+  getAll(){if(this._vc)return this._vc;try{this._vc=JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY))||[];}catch{this._vc=[];}return this._vc;},
+  saveAll(r){this._vc=null;localStorage.setItem(CONFIG.STORAGE_KEY,JSON.stringify(r))},
   add(r){const a=this.getAll();a.unshift(r);this.saveAll(a)},
   markSynced(id){this.saveAll(this.getAll().map(r=>r.id===id?{...r,synced:true,lastError:null}:r))},
   markError(id,msg){this.saveAll(this.getAll().map(r=>r.id===id?{...r,attempts:(r.attempts||0)+1,lastError:msg}:r))},
@@ -783,6 +784,7 @@ const Store = {
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
         method:"POST",
+        headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           token:CONFIG.SHARED_SECRET,
           action:"updateEstado",
@@ -800,6 +802,7 @@ const Store = {
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
         method:"POST",
+        headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           token:CONFIG.SHARED_SECRET,
           action:"updateEstado",
@@ -1978,9 +1981,14 @@ const GanchoEngine = {
                  p_siembra:["Agrotoxan Triple","Picokem SC"],
                  p_siempre:["Agrosato Gold 20L"] },
     "ganadería":{ p_siempre:["Agrotrazina SC","Agrofentrin Plus 20-30 SC"] },
-    "gestora": { p_siempre:["Granusato 75.7 SG","Agrosato Gold 20L","Picokem SC"] },
+    "gestora":  { p_siempre:["Granusato 75.7 SG","Agrosato Gold 20L","Picokem SC"] },
+    "chía":     { siembra:[10,11], p_siembra:["Agrotoxan Triple","Picokem SC"], p_siempre:["Agrosato Gold 20L"] },
+    "poroto":   { siembra:[10,11,12], p_siembra:["Agrosato Gold 20L","Picokem SC"], p_siempre:["Agrofentrin Plus"] },
+    "trigo":    { siembra:[5,6,7], p_siembra:["Agronazol Duo","Trobin 12 Plus"], p_siempre:["Foliar Plus"] },
+    "arroz":    { siembra:[10,11], p_siembra:["Propanil 480","2,4-D 720"], p_siempre:["Agrofentrin Plus"] },
   },
   sugerir(cliente){
+    try{
     const mes = new Date().getMonth() + 1; // 1-12
     const rubros = (cliente.rubros || cliente.tipo || "").toLowerCase()
       .split(/[,/+]/).map(r => r.trim()).filter(Boolean);
@@ -2011,6 +2019,7 @@ const GanchoEngine = {
       });
     });
     return sugerencias.sort((a,b) => b.prioridad - a.prioridad).slice(0,4);
+    }catch(e){ console.warn('[GanchoEngine] error:', e); return []; }
   },
   renderEnFicha(cliente){
     const box = document.getElementById("gancho-sugerencia-box");
@@ -2113,6 +2122,13 @@ const NuevoCliente={
     if(!nombre){errEl.textContent='⚠️ El nombre es obligatorio.';errEl.style.display='block';document.getElementById('nci-nombre').focus();return;}
     const lat=parseFloat(document.getElementById('nci-lat').value);
     const lng=parseFloat(document.getElementById('nci-lng').value);
+    // Validar rango Paraguay/región
+    if(!isNaN(lat) && lat !== 0 && (lat < -27.5 || lat > -19.3 || lng < -62.5 || lng > -54.2)){
+      const errEl=document.getElementById('nci-error');
+      errEl.textContent='⚠️ Coordenadas fuera del rango Paraguay. Verificá lat/lng.';
+      errEl.style.display='block';
+      return;
+    }
     const nuevo={
       id:this._id(nombre),nombre,ruc:'',
       zona:document.getElementById('nci-zona').value,
