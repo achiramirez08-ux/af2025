@@ -31,19 +31,15 @@ jobs:
 
       - name: Verificar archivos requeridos
         run: |
-          test -f index.html && echo "✅ index.html" || (echo "❌ Falta index.html" && exit 1)
-          test -f sw.js && echo "✅ sw.js" || echo "⚠️ sw.js no encontrado"
-          test -f manifest.json && echo "✅ manifest.json" || echo "⚠️ manifest.json no encontrado"
-          echo "Tamaño: $(du -sh index.html | cut -f1)"
+          test -f index.html && echo "OK index.html" || (echo "FALTA index.html" && exit 1)
+          test -f sw.js && echo "OK sw.js" || echo "FALTA sw.js"
+          test -f manifest.json && echo "OK manifest.json" || echo "FALTA manifest.json"
+          echo "Tamano: $(du -sh index.html | cut -f1)"
 
-      - name: Verificar placeholders configurados
+      - name: Verificar placeholders
         run: |
-          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html \
-            && echo "✅ Placeholder GAS_TOKEN presente" \
-            || (echo "❌ GAS_TOKEN_PLACEHOLDER no encontrado en index.html" && exit 1)
-          grep -q 'GAS_URL_PLACEHOLDER' index.html \
-            && echo "✅ Placeholder GAS_URL presente" \
-            || (echo "❌ GAS_URL_PLACEHOLDER no encontrado en index.html" && exit 1)
+          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html && echo "OK GAS_TOKEN placeholder" || (echo "ERROR falta GAS_TOKEN_PLACEHOLDER" && exit 1)
+          grep -q 'GAS_URL_PLACEHOLDER' index.html && echo "OK GAS_URL placeholder" || (echo "ERROR falta GAS_URL_PLACEHOLDER" && exit 1)
 
   deploy:
     name: Deploy a GitHub Pages
@@ -59,26 +55,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inyectar secrets en index.html
+      - name: Inyectar secrets
         run: |
           sed -i "s|GAS_TOKEN_PLACEHOLDER|${{ secrets.GAS_TOKEN }}|g" index.html
           sed -i "s|GAS_URL_PLACEHOLDER|${{ secrets.GAS_URL }}|g" index.html
-          echo "✅ Secrets inyectados"
-          # Verificar que la inyección funcionó
-          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html \
-            && (echo "❌ Secret GAS_TOKEN no fue inyectado - verificá que el secret existe en GitHub" && exit 1) \
-            || echo "✅ GAS_TOKEN inyectado correctamente"
+          grep -q 'GAS_TOKEN_PLACEHOLDER' index.html && (echo "ERROR secret no inyectado" && exit 1) || echo "OK secrets inyectados"
 
       - name: Generar iconos PWA
         run: |
-          convert -size 192x192 xc:'#1F4E79' \
-            -fill white -gravity center -pointsize 80 \
-            -annotate 0 'AF' icon-192.png 2>/dev/null \
-            && echo "✅ icon-192.png generado" || echo "⚠️ ImageMagick no disponible"
-          convert -size 512x512 xc:'#1F4E79' \
-            -fill white -gravity center -pointsize 200 \
-            -annotate 0 'AF' icon-512.png 2>/dev/null \
-            && echo "✅ icon-512.png generado" || echo "⚠️ ImageMagick no disponible"
+          convert -size 192x192 xc:'#1F4E79' -fill white -gravity center -pointsize 80 -annotate 0 'AF' icon-192.png 2>/dev/null && echo "OK icon-192" || echo "SKIP iconos"
+          convert -size 512x512 xc:'#1F4E79' -fill white -gravity center -pointsize 200 -annotate 0 'AF' icon-512.png 2>/dev/null && echo "OK icon-512" || echo "SKIP iconos"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -92,5 +78,5 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Mostrar URL
-        run: echo "✅ Publicado en ${{ steps.deployment.outputs.page_url }}"
+      - name: URL
+        run: echo "Publicado en ${{ steps.deployment.outputs.page_url }}"
