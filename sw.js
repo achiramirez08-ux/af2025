@@ -9,8 +9,8 @@ const OFFLINE_URL   = '/index.html';
 
 // Assets a cachear en la instalación (shell de la app)
 const PRECACHE_URLS = [
-  '/',
-  '/index.html',
+  '/af2025/',
+  '/af2025/index.html',
 ];
 
 // ── INSTALL — cachear el shell de la app ────────────────────────────────────
