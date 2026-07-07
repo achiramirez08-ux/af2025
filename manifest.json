@@ -11,13 +11,13 @@
   "scope": "/af2025/",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/af2025/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/af2025/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -32,10 +32,10 @@
       "name": "Nueva venta",
       "short_name": "Venta",
       "description": "Registrar una venta rápida",
-      "url": "/?accion=venta",
+      "url": "/af2025/?accion=venta",
       "icons": [
         {
-          "src": "icon-192.png",
+          "src": "/af2025/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -44,10 +44,10 @@
       "name": "Mi ruta hoy",
       "short_name": "Ruta",
       "description": "Ver clientes cercanos",
-      "url": "/?tab=ruta",
+      "url": "/af2025/?tab=ruta",
       "icons": [
         {
-          "src": "icon-192.png",
+          "src": "/af2025/icon-192.png",
           "sizes": "192x192"
         }
       ]
