@@ -773,6 +773,26 @@ const Utils = {
   }
 };
 
+// ============ TEL (validacion celular PY / WhatsApp) ============
+// Celular PY valido: 9 digitos sin 0 ni 595, empieza con "9" (09XX XXXXXX / +595 9XX XXXXXX)
+// Cualquier otra cosa (021, 061, 0491, 0493, etc.) es fijo -> no tiene WhatsApp
+const Tel = {
+  normalizar(raw){
+    let d=String(raw||"").replace(/[^0-9]/g,"");
+    if(d.startsWith("595"))d=d.slice(3);
+    else d=d.replace(/^0/,"");
+    return d;
+  },
+  esCelular(raw){
+    if(!raw)return false;
+    const d=this.normalizar(raw);
+    return d.length===9 && d.startsWith("9");
+  },
+  paraWA(raw){
+    return "595"+this.normalizar(raw);
+  }
+};
+
 // ============ STORE ============
 const Store = {
   _vc:null,
@@ -1229,7 +1249,7 @@ const Ruta = {
       <p class="text-[11px] text-gray-400 italic mb-1.5">${UI.escape(c.gancho_comercial)}</p>
       ${ganchoTec}
       <div class="flex gap-2 mt-2">
-        ${c.telefono?`<button class="btn-wa-ruta flex-1 text-xs bg-emerald-600 active:bg-emerald-700 py-1.5 rounded-lg font-semibold" data-id="${c.id}">WhatsApp</button>`:""}
+        ${c.telefono?(Tel.esCelular(c.telefono)?`<button class="btn-wa-ruta flex-1 text-xs bg-emerald-600 active:bg-emerald-700 py-1.5 rounded-lg font-semibold" data-id="${c.id}">WhatsApp</button>`:`<a href="tel:${c.telefono}" class="flex-1 text-xs bg-gray-700 text-gray-300 py-1.5 rounded-lg font-semibold text-center" title="Numero fijo -- sin WhatsApp">☎️ Fijo</a>`):""}
         <button class="btn-maps-ruta flex-1 text-xs bg-sky-600 active:bg-sky-700 py-1.5 rounded-lg font-semibold" data-id="${c.id}">Maps</button>
         <button type="button" onclick="event.stopPropagation();EditCliente.abrir('${c.id}')" class="text-xs bg-gray-700 active:bg-gray-600 px-3 py-1.5 rounded-lg font-semibold" style="touch-action:manipulation">✏️ Editar</button>
       </div>
@@ -1317,8 +1337,10 @@ const Clientes = {
     const base=CLIENTES.find(x=>x.id===id);if(!base)return;
     const c=ClientesStore.merge(base);
     if(!c.telefono)return;
-    let tel=c.telefono.replace(/[^0-9]/g,"");
-    if(!tel.startsWith("595"))tel="595"+tel.replace(/^0/,"");
+    if(!Tel.esCelular(c.telefono)){
+      if(!confirm("Este numero parece ser una linea fija y podria no tener WhatsApp. Enviar de todas formas?"))return;
+    }
+    const tel=Tel.paraWA(c.telefono);
     let msg=`Hola! Soy Fernando Ramírez de *Agrofuturo Paraguay*. `;
     if(c.top_500)msg+=`Como cliente preferencial de la SET, quiero presentarle nuestras condiciones de crédito exclusivo para la zafra 2026. `;
     if(c.zona==="Chaco")msg+=`Tenemos línea completa para el Chaco con entrega directa. `;
@@ -1523,7 +1545,7 @@ const ClienteDetalle = {
       <div class="flex flex-wrap gap-1 mb-3">${c.rubros.split(",").map(r=>`<span class="text-[11px] px-2 py-0.5 rounded-full bg-yellow-500/15 text-yellow-300 font-semibold">${UI.escape(r.trim())}</span>`).join("")}${c.tipo?`<span class="text-[11px] px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">${UI.escape(c.tipo)}</span>`:""}</div>
       <div class="space-y-2 mb-4">
         ${c._contacto?`<div class="flex items-center gap-3"><span>👤</span><div><div class="text-[10px] text-gray-500">Contacto</div><div class="font-semibold text-sm">${UI.escape(c._contacto)}</div></div></div>`:""}
-        ${c.telefono?`<div class="flex items-center gap-3"><span>📞</span><a href="tel:${c.telefono}" class="text-sky-400 text-sm font-semibold">${UI.escape(c.telefono)}</a></div>`:'<div class="flex items-center gap-3 text-gray-600"><span>📞</span><span class="text-xs italic">Sin teléfono — tocá Editar para agregar</span></div>'}
+        ${c.telefono?`<div class="flex items-center gap-3"><span>📞</span><a href="tel:${c.telefono}" class="text-sky-400 text-sm font-semibold">${UI.escape(c.telefono)}</a>${Tel.esCelular(c.telefono)?"":'<span class="text-[10px] text-amber-400 font-semibold">☎️ Fijo, sin WhatsApp</span>'}</div>`:'<div class="flex items-center gap-3 text-gray-600"><span>📞</span><span class="text-xs italic">Sin teléfono — tocá Editar para agregar</span></div>'}
         ${c.email?`<div class="flex items-center gap-3"><span>✉️</span><span class="text-gray-300 text-sm">${UI.escape(c.email)}</span></div>`:'<div class="flex items-center gap-3 text-gray-600"><span>✉️</span><span class="text-xs italic">Sin email — tocá Editar para agregar</span></div>'}
         ${c.direccion?`<div class="flex items-center gap-3"><span>🏠</span><span class="text-gray-400 text-xs">${UI.escape(c.direccion)}</span></div>`:""}
         ${c.ruc?`<div class="flex items-center gap-3"><span>🧾</span><span class="text-gray-400 text-xs">RUC ${UI.escape(c.ruc)}</span></div>`:""}
@@ -1621,8 +1643,10 @@ const ClienteDetalle = {
     const base=CLIENTES.find(x=>x.id===this.clienteId);if(!base)return;
     const c=ClientesStore.merge(base);
     if(!c.telefono){UI.toast("Sin teléfono registrado.");return;}
-    let tel=c.telefono.replace(/[^0-9]/g,"");
-    if(!tel.startsWith("595"))tel="595"+tel.replace(/^0/,"");
+    if(!Tel.esCelular(c.telefono)){
+      if(!confirm("Este numero parece ser una linea fija y podria no tener WhatsApp. Enviar de todas formas?"))return;
+    }
+    const tel=Tel.paraWA(c.telefono);
     const el=document.getElementById("ficha-tab-speech");
     const raw=(el&&el._speech)||c.gancho_comercial;
     const limpio=raw.replace(/[\u{1F300}-\u{1FAFF}]/gu,'').replace(/\*/g,'');
