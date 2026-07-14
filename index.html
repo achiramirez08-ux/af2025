@@ -2382,7 +2382,7 @@ const NuevoClienteSync = {
     if(!navigator.onLine) return;
     try{
       const lista = JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
-      const pendientes = lista.filter(c=>c && c.synced===false);
+      const pendientes = lista.filter(c=>c && c.synced!==true);
       for(const c of pendientes){ await this.pushOne(c); }
     }catch(e){}
   },
