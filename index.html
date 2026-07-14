@@ -700,8 +700,8 @@
 
 // ============ CONFIG ============
 const CONFIG = {
-  SCRIPT_URL: "GAS_URL_PLACEHOLDER",
-  SHARED_SECRET: "GAS_TOKEN_PLACEHOLDER",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyReUNQFPsZI-_djJuIT2kE-u0d_OtVwMdeiJpjhAKCljkwdOB_wMWvSwXmhOJa3ryg/exec",
+  SHARED_SECRET: "b9ae07ea1de673bc7733330b943e2af8a3ddb74518cac3d9",
   STORAGE_KEY: "rutaFernando.records.v1",
   RETRY_INTERVAL_MS: 20000,
   get DIVISA_DEFAULT(){ return localStorage.getItem("rutaFernando.divisa")||"USD"; },
@@ -1786,6 +1786,7 @@ const App = {
     setTimeout(()=>Clientes.init(), 120);
     // Sync bidireccional de ediciones de clientes
     ClientesSync.init();
+    NuevoClienteSync.init();
     window.addEventListener("online",()=>{UI.toast("Conexión recuperada. Sincronizando…");Sync.flushQueue()});
     window.addEventListener("offline",()=>{UI.updateStatusBadge();UI.toast("Sin conexión. Los datos se guardan en el equipo.")});
     setInterval(()=>{if(navigator.onLine)Sync.flushQueue()},CONFIG.RETRY_INTERVAL_MS);
@@ -2242,6 +2243,7 @@ const NuevoCliente={
       _contacto:document.getElementById('nci-contacto').value.trim(),
       _editado:true,createdAt:new Date().toISOString()
     };
+    nuevo.synced = false;
     try{
       const lista=JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
       lista.push(nuevo);
@@ -2251,7 +2253,9 @@ const NuevoCliente={
     document.getElementById('nci-ok').style.display='block';
     if(navigator.vibrate)navigator.vibrate([50,30,50]);
     if(typeof Clientes!=='undefined')Clientes.render(document.getElementById('clientes-search').value||'');
-    setTimeout(()=>{this.cerrar();UI.toast('✅ '+nombre+' agregado.');},1400);
+    // Sincronizar al backend (antes esto NO se hacia -- el cliente quedaba solo en el celular)
+    if(typeof NuevoClienteSync!=='undefined') NuevoClienteSync.pushOne(nuevo);
+    setTimeout(()=>{this.cerrar();UI.toast('✅ '+nombre+' agregado y sincronizando…');},1400);
   }
 };
 
@@ -2344,6 +2348,83 @@ const ClientesSync = {
   }
 };
 
+// ============ NUEVO CLIENTE SYNC — clientes agregados desde cero en campo ============
+// Antes, NuevoCliente.guardar() solo escribia en localStorage ("rf.custom.v1") y
+// nunca llegaba al backend. Este modulo:
+//  - Empuja al Apps Script (action:"nuevoCliente") los clientes que aun no
+//    estan sincronizados (marca synced:true al confirmar).
+//  - Trae (pull) los clientes nuevos que Fernando cargo desde otros
+//    dispositivos y los fusiona en el mismo localStorage local, para que
+//    ClientesStore.mergeAll() los muestre igual que los agregados en este equipo.
+const NuevoClienteSync = {
+  async pushOne(cliente){
+    if(!navigator.onLine) return false;
+    try{
+      const res = await fetch(CONFIG.SCRIPT_URL, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({token:CONFIG.SHARED_SECRET, action:"nuevoCliente", cliente})
+      });
+      const data = await res.json();
+      if(!data.ok) return false;
+      this._marcarSynced(cliente.id);
+      return true;
+    }catch(e){ return false; }
+  },
+  _marcarSynced(id){
+    try{
+      const lista = JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
+      const idx = lista.findIndex(c=>c.id===id);
+      if(idx>=0){ lista[idx].synced=true; localStorage.setItem("rf.custom.v1", JSON.stringify(lista)); }
+    }catch(e){}
+  },
+  async flushPending(){
+    if(!navigator.onLine) return;
+    try{
+      const lista = JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
+      const pendientes = lista.filter(c=>c && c.synced===false);
+      for(const c of pendientes){ await this.pushOne(c); }
+    }catch(e){}
+  },
+  async pull(){
+    if(!navigator.onLine) return;
+    try{
+      const url = CONFIG.SCRIPT_URL + '?action=clientesNuevos&token=' + encodeURIComponent(CONFIG.SHARED_SECRET);
+      const r = await fetch(url);
+      const d = await r.json();
+      if(!d.ok || !d.data?.clientes?.length) return;
+      const lista = JSON.parse(localStorage.getItem("rf.custom.v1")||"[]");
+      const idsLocal = new Set(lista.map(c=>c.id));
+      const idsBase = new Set(CLIENTES.map(c=>c.id));
+      let agregados=0;
+      d.data.clientes.forEach(rc=>{
+        if(!rc.id || idsBase.has(rc.id) || idsLocal.has(rc.id)) return;
+        lista.push({
+          id:rc.id, nombre:rc.nombre||"", ruc:rc.ruc||"", zona:rc.zona||"",
+          ciudad:rc.ciudad||"", depto:rc.depto||"", direccion:rc.direccion||"",
+          telefono:rc.telefono||"", email:rc.email||"", tipo:rc.tipo||"productor",
+          rubros:rc.rubros||"", lat:rc.lat||null, lng:rc.lng||null,
+          dnit_estado:rc.dnit_estado||"", top_500:!!rc.top_500, riesgo:rc.riesgo||"",
+          gancho_comercial:rc.gancho_comercial||"", cliente_activo:!!rc.cliente_activo,
+          prioridad:rc.prioridad||3, gremio:rc.gremio||"", gancho_tecnico:rc.gancho_tecnico||"",
+          zona_chaco:!!rc.zona_chaco, fuente:rc.fuente||"", _contacto:rc.contacto||"",
+          _editado:true, createdAt:rc.createdAt||new Date().toISOString(), synced:true
+        });
+        idsLocal.add(rc.id);
+        agregados++;
+      });
+      if(agregados>0){
+        localStorage.setItem("rf.custom.v1", JSON.stringify(lista));
+        if(typeof Clientes!=='undefined') Clientes.render(document.getElementById('clientes-search')?.value||'');
+      }
+    }catch(e){}
+  },
+  init(){
+    setTimeout(()=>{ this.flushPending(); this.pull(); }, 2500);
+    setInterval(()=>{ if(navigator.onLine){ this.flushPending(); this.pull(); } }, 5*60*1000);
+    window.addEventListener('online', ()=>{ setTimeout(()=>{ this.flushPending(); this.pull(); }, 1000); });
+  }
+};
 document.addEventListener("DOMContentLoaded",App.init);
 </script>
 </body>
