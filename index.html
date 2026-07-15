@@ -2586,6 +2586,24 @@ const NuevoClienteSync = {
   }
 };
 
+// ============ TELEFONOS INTERNACIONALES ============
+// NOTA: Tel.esCelular()/Tel.paraWA() (mas arriba) son especificos de Paraguay
+// (asumen 9 digitos empezando en "9" tras sacar el 595). Los prospectos del
+// exterior ya vienen con su propio codigo de pais (+54, +591, +55, etc.), asi
+// que usamos un helper separado que no fuerza el prefijo paraguayo.
+const TelIntl = {
+  limpiar(raw){
+    return String(raw||"").replace(/[^0-9]/g,"");
+  },
+  esWhatsapp(raw){
+    // La mayoria de los telefonos de este listado son lineas de oficina
+    // (conmutador), no celulares personales, asi que solo mostramos el
+    // boton de WhatsApp cuando el dato de origen lo marca explicitamente
+    // (ej: "WA: +86 ...").
+    return /\bwa\b/i.test(String(raw||""));
+  }
+};
+
 // ============ PROSPECTOS INTERNACIONALES — STORE (overrides locales) ============
 const ProspectosIntlStore = {
   KEY: "rutaFernando.prospectosIntl.v1",
@@ -2663,7 +2681,8 @@ const ProspectosIntl = {
         + '<p class="text-[11px] text-gray-400 italic mb-2">'+UI.escape(p.gancho_comercial)+'</p>'
         + '<div class="flex gap-1.5 mb-2 flex-wrap">'
         + (p.email?'<a href="mailto:'+p.email+'" class="text-[11px] bg-sky-600 active:bg-sky-700 px-2.5 py-1.5 rounded-lg font-semibold">✉️ Email</a>':"")
-        + ((p.telefono && Tel.esCelular(p.telefono))?'<button type="button" class="intl-wa-btn text-[11px] bg-emerald-600 active:bg-emerald-700 px-2.5 py-1.5 rounded-lg font-semibold" data-id="'+p.id+'">WhatsApp</button>':"")
+        + (p.telefono?'<a href="tel:'+TelIntl.limpiar(p.telefono)+'" class="text-[11px] bg-gray-600 active:bg-gray-700 px-2.5 py-1.5 rounded-lg font-semibold">📞 Llamar</a>':"")
+        + (TelIntl.esWhatsapp(p.telefono)?'<button type="button" class="intl-wa-btn text-[11px] bg-emerald-600 active:bg-emerald-700 px-2.5 py-1.5 rounded-lg font-semibold" data-id="'+p.id+'">💬 WhatsApp</button>':"")
         + '<button type="button" class="intl-venta-btn text-[11px] bg-amber-600 active:bg-amber-700 px-2.5 py-1.5 rounded-lg font-semibold" data-id="'+p.id+'">💰 Registrar venta</button>'
         + '</div>'
         + '<div class="flex items-center gap-2">'
@@ -2691,7 +2710,7 @@ const ProspectosIntl = {
     listaEl.querySelectorAll(".intl-wa-btn").forEach(b=>b.addEventListener("click",()=>{
       const p = ProspectosIntl.mergeAll().find(x=>x.id===b.dataset.id);
       if(!p) return;
-      const tel = Tel.paraWA(p.telefono);
+      const tel = TelIntl.limpiar(p.telefono);
       const msg = "Hola! Soy Fernando Ramírez de Agrofuturo Paraguay S.A. Le escribo respecto a una propuesta de formulación/suministro de agroquímicos desde Paraguay para "+p.empresa+". ¿Tendría 20 minutos esta semana para una videollamada?";
       window.open("https://wa.me/"+tel+"?text="+encodeURIComponent(msg));
     }));
