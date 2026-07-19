@@ -960,7 +960,7 @@ const Store = {
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({
           token:CONFIG.SHARED_SECRET,
           action:"updateEstado",
@@ -978,7 +978,7 @@ const Store = {
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({
           token:CONFIG.SHARED_SECRET,
           action:"updateEstado",
@@ -1149,7 +1149,7 @@ const EditCliente = {
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({
           token:CONFIG.SHARED_SECRET,
           action:"updateCliente",
@@ -1211,7 +1211,7 @@ const Sync = {
     const body=record.kind==="foto"
       ?{token:CONFIG.SHARED_SECRET,accion:"foto",idPedido:record.idPedido||"",cliente:record.cliente,fotoBase64:record.fotoBase64,recordId:record.id}
       :{token:CONFIG.SHARED_SECRET,tipo:record.tipo,cliente:record.cliente,monto:record.monto,notas:record.notas,productoInput:record.productoInput||"",productoNormalizado:record.productoNormalizado||"",cantidad:record.cantidad||0,precioUnitario:record.precioUnitario||0,idPedido:record.idPedido||"",fechaPedido:record.fechaPedido||"",fechaEntrega:record.fechaEntrega||"",estadoEntrega:record.estadoEntrega||"pendiente",clientTimestamp:record.createdAt,recordId:record.id};
-    const res=await fetch(CONFIG.SCRIPT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const res=await fetch(CONFIG.SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
     if(!res.ok)throw new Error("HTTP "+res.status);
     const data=await res.json();
     if(!data.ok)throw new Error(data.error||"Error del servidor");
@@ -2494,7 +2494,7 @@ const ClientesSync = {
         try{
           const res = await fetch(CONFIG.SCRIPT_URL, {
             method:"POST",
-            headers:{"Content-Type":"application/json"},
+            headers:{"Content-Type":"text/plain;charset=utf-8"},
             body:JSON.stringify({token:CONFIG.SHARED_SECRET, action:"updateCliente", clienteId:id, campos})
           });
           const data = await res.json();
@@ -2543,7 +2543,7 @@ const NuevoClienteSync = {
     try{
       const res = await fetch(CONFIG.SCRIPT_URL, {
         method:"POST",
-        headers:{"Content-Type":"application/json"},
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
         body:JSON.stringify({token:CONFIG.SHARED_SECRET, action:"nuevoCliente", cliente})
       });
       const data = await res.json();
@@ -2752,7 +2752,7 @@ const ProspectosIntlSync = {
     const campos = ProspectosIntlStore.getOne(id);
     if(!Object.keys(campos).length) return Promise.resolve(false);
     return fetch(CONFIG.SCRIPT_URL, {
-      method:"POST", headers:{"Content-Type":"application/json"},
+      method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify({token:CONFIG.SHARED_SECRET, action:"updateProspectoIntl", prospectoId:id, campos:campos})
     }).then(res=>res.json()).then(data=>{
       if(data.ok){ ProspectosIntlStore.save(id, {synced:true}); return true; }
@@ -2816,7 +2816,7 @@ const SyncIntl = {
   inFlight: false,
   pushOne(record){
     return fetch(CONFIG.SCRIPT_URL, {
-      method:"POST", headers:{"Content-Type":"application/json"},
+      method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
       body: JSON.stringify({token:CONFIG.SHARED_SECRET, action:"ventaInternacional", venta:record})
     }).then(res=>{
       if(!res.ok) throw new Error("HTTP "+res.status);
