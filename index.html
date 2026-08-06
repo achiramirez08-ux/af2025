@@ -61,6 +61,7 @@
       </span>
       <span id="status-action" class="text-[11px] underline decoration-dotted opacity-80"></span>
     </button>
+    <div id="sync-diagnostico" class="text-[10px] text-gray-500 text-center mt-1"></div>
   </div>
 </header>
 
@@ -2524,10 +2525,22 @@ const RegistrosSync = {
     try{
       const url = CONFIG.SCRIPT_URL + '?action=registros&token=' + encodeURIComponent(CONFIG.SHARED_SECRET);
       const r   = await fetch(url);
+      if(!r.ok){
+        document.getElementById('sync-diagnostico').textContent = '⚠️ Error HTTP ' + r.status;
+        this._syncing = false; return;
+      }
       const d   = await r.json();
-      if(!d.ok || !d.data?.registros?.length){
-        this._syncing = false;
-        return;
+      if(!d.ok){
+        document.getElementById('sync-diagnostico').textContent = '⚠️ ' + (d.error||'Respuesta sin ok');
+        this._syncing = false; return;
+      }
+      if(!d.data || !('registros' in d.data)){
+        document.getElementById('sync-diagnostico').textContent = '⚠️ Backend sin acción registros';
+        this._syncing = false; return;
+      }
+      if(!d.data.registros.length){
+        document.getElementById('sync-diagnostico').textContent = 'Servidor conectado, 0 registros';
+        this._syncing = false; return;
       }
 
       const local = Store.getAll();
@@ -2579,11 +2592,11 @@ const RegistrosSync = {
         console.log('[RegistrosSync] ' + agregados + ' pedidos nuevos, ' + actualizados + ' actualizados desde el GAS');
       }
       this._lastSync = new Date();
+      document.getElementById('sync-diagnostico').textContent = '✓ Sync ok: ' + agregados + ' nuevos';
     }catch(e){
+      document.getElementById('sync-diagnostico').textContent = '⚠️ Excepción: ' + e.message;
       console.warn('[RegistrosSync] pull error:', e);
     }
-    this._syncing = false;
-  },
 
   init(){
     // Pull inicial al cargar (diferido para no bloquear UI)
