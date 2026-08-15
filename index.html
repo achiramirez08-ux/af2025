@@ -1881,6 +1881,7 @@ const ClienteDetalle = {
 
 // ============ APP ============
 const App = {
+  _editandoIdPedido:null,
   irTabRuta(){document.querySelector('[data-tab="ruta"]')?.click();},
   irTabClientes(){document.querySelector('[data-tab="clientes"]')?.click();},
   toggleDivisa(){
@@ -1919,6 +1920,53 @@ const App = {
     document.getElementById("error-lineas").classList.add("hidden");
     document.getElementById("cliente-sugerencias").classList.add("hidden");
     Lineas.items=[];Foto.reset();
+    App._editandoIdPedido=null;
+    document.getElementById("modal-titulo").textContent="Registrar";
+    document.getElementById("btn-guardar").textContent="Guardar";
+  },
+  // Abre el modal de carga precargado con los datos de un pedido existente
+  // para que Fernando pueda modificarlo antes de la entrega (cambios de
+  // cantidad, producto, precio, fecha de entrega, etc.)
+  editarPedido(idPedido){
+    const todos=Store.getAll();
+    const lineasRaw=todos.filter(r=>r.idPedido===idPedido&&r.kind==="venta");
+    if(!lineasRaw.length){UI.toast("No se encontraron los datos de este pedido.");return}
+    if(lineasRaw.some(r=>r.estadoEntrega==="entregado")){
+      if(!confirm("Este pedido ya fue marcado como entregado. ¿Seguro que querés editarlo igual?"))return;
+    }
+    const fotoRec=todos.find(r=>r.idPedido===idPedido&&r.kind==="foto");
+    const base=lineasRaw[0];
+    // Los registros se guardan con unshift (más nuevo primero), así que
+    // invertimos para recuperar el orden original en que se cargaron las líneas
+    const ordenadas=[...lineasRaw].reverse();
+
+    this.abrirModal(base.tipo||"Venta");
+    this._editandoIdPedido=idPedido;
+    document.getElementById("modal-titulo").textContent="Editar pedido";
+    document.getElementById("btn-guardar").textContent="💾 Guardar cambios";
+    document.getElementById("input-cliente").value=base.cliente||"";
+    document.getElementById("input-notas").value=base.notas||"";
+    document.getElementById("input-fecha-pedido").value=base.fechaPedido||"";
+    document.getElementById("input-fecha-entrega").value=base.fechaEntrega||"";
+
+    Lineas.items=ordenadas.map(r=>({
+      uid:Utils.uuid(),
+      texto:r.productoInput||r.productoNormalizado||"",
+      productoId:r.productoId||null,
+      productoNombre:r.productoNormalizado||null,
+      presentacion:r.presentacion||"",
+      cantidad:r.cantidad?String(r.cantidad):"",
+      precioUnitario:r.precioUnitario?String(r.precioUnitario):"",
+      divisa:r.divisa||CONFIG.DIVISA_DEFAULT
+    }));
+    Lineas.render();
+
+    if(fotoRec&&fotoRec.fotoBase64){
+      Foto.dataUrl=fotoRec.fotoBase64;
+      document.getElementById("foto-preview").src=fotoRec.fotoBase64;
+      document.getElementById("foto-preview-cont").classList.remove("hidden");
+      document.getElementById("btn-foto-label").textContent="Cambiar foto";
+    }
   },
   manualSync(){
     if(!navigator.onLine){UI.toast("Sin conexión todavía.");return}
@@ -1944,8 +1992,16 @@ const App = {
 
     if(!valid)return;
     const btn=document.getElementById("btn-guardar");btn.disabled=true;
-    const idPedido=Utils.uuid(),createdAt=new Date().toISOString();
+    const editId=App._editandoIdPedido;
+    const idPedido=editId||Utils.uuid(),createdAt=new Date().toISOString();
     const divisaDefault=CONFIG.DIVISA_DEFAULT;
+
+    if(editId){
+      // Reemplazo: borra las líneas/foto anteriores de este pedido (local +
+      // aviso al GAS para marcarlas borradas en el Sheet) antes de cargar
+      // las líneas editadas con el mismo idPedido.
+      Store.borrarPedido(editId);
+    }
 
     lv.forEach(l=>{
       // Usar Utils.parseNum para aceptar tanto "2.20" como "2,20"
@@ -1967,7 +2023,7 @@ const App = {
     document.getElementById("input-fecha-pedido").value="";
     document.getElementById("input-fecha-entrega").value="";
     if(navigator.vibrate)navigator.vibrate([50,30,50]); // feedback háptico
-    UI.toast(`✅ Guardado (${lv.length} producto(s)${Foto.dataUrl?" + foto":""}). Sincronizando…`);
+    UI.toast(editId?`✏️ Pedido actualizado (${lv.length} producto(s)${Foto.dataUrl?" + foto":""}). Sincronizando…`:`✅ Guardado (${lv.length} producto(s)${Foto.dataUrl?" + foto":""}). Sincronizando…`);
     btn.disabled=false;Sync.flushQueue();
   },
   initNav(){
@@ -2108,6 +2164,7 @@ const VentasUI = {
     const acciones=`<div class="flex gap-1.5 mt-2">
       ${!esE?`<button onclick="VentasUI.confirmarEntrega('${p.idPedido}')" class="flex-1 text-[11px] bg-emerald-600 active:bg-emerald-700 rounded-lg py-1.5 font-semibold">✅ Entregado</button>`
       :`<span class="flex-1 text-center text-[11px] text-emerald-400 py-1.5">✅ Entregado</span>`}
+      ${!esE?`<button onclick="App.editarPedido('${p.idPedido}')" class="text-[11px] bg-gray-700 active:bg-sky-900/60 border border-sky-500/20 rounded-lg px-3 py-1.5 text-sky-400" title="Editar pedido">✏️ Editar</button>`:""}
       <button onclick="VentasUI.confirmarBorrar('${p.idPedido}')" class="text-[11px] bg-gray-700 active:bg-red-900/60 border border-red-500/20 rounded-lg px-3 py-1.5 text-red-400" title="Borrar pedido">🗑 Borrar</button>
     </div>`;
     return `<div class="bg-gray-800/80 rounded-xl p-3 border ${border}">
