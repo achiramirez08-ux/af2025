@@ -887,6 +887,22 @@ const Tel = {
   }
 };
 
+// ============ BORRADOS (blacklist local de pedidos eliminados) ============
+// Cuando el usuario borra un pedido explicitamente (boton Borrar), guardamos su
+// idPedido aca de forma permanente. RegistrosSync.pull() consulta esta lista en
+// cada sincronizacion para evitar que un pedido borrado "reviva" si el GAS no
+// llego a marcarlo como borrado en la Sheet (fallo de red, offline, etc.)
+const BorradosStore = {
+  KEY: "rutaFernando.borrados.v1",
+  getAll(){try{return JSON.parse(localStorage.getItem(this.KEY))||[];}catch{return [];}},
+  has(idPedido){return this.getAll().includes(idPedido);},
+  add(idPedido){
+    if(!idPedido) return;
+    const all=this.getAll();
+    if(!all.includes(idPedido)){all.push(idPedido);localStorage.setItem(this.KEY,JSON.stringify(all));}
+  }
+};
+
 // ============ STORE ============
 const Store = {
   _vc:null,
@@ -896,11 +912,13 @@ const Store = {
   markSynced(id){this.saveAll(this.getAll().map(r=>r.id===id?{...r,synced:true,lastError:null}:r))},
   markError(id,msg){this.saveAll(this.getAll().map(r=>r.id===id?{...r,attempts:(r.attempts||0)+1,lastError:msg}:r))},
   getPending(){return this.getAll().filter(r=>!r.synced)},
-  kpiVentas(){return this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto").reduce((s,r)=>s+(Number(r.monto)||0),0)},
+  kpiVentas(){return this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto"&&r.estadoEntrega!=="borrado").reduce((s,r)=>s+(Number(r.monto)||0),0)},
   pedidosUnicos(){return new Set(this.getAll().filter(r=>r.tipo==="Venta"&&r.idPedido).map(r=>r.idPedido)).size},
   getPedidos(){
     // Agrupa registros de venta por idPedido, retorna lista de pedidos consolidados
-    const all=this.getAll().filter(r=>r.kind!=="foto");
+    // (excluye registros marcados como "borrado" para que un pedido eliminado
+    // no reaparezca en el listado ni en los totales)
+    const all=this.getAll().filter(r=>r.kind!=="foto"&&r.estadoEntrega!=="borrado");
     const mapa={};
     all.forEach(r=>{
       const pid=r.idPedido||r.id;
@@ -937,10 +955,14 @@ const Store = {
       }).catch(()=>{});
     }
   },
-  borrarPedido(idPedido){
+  borrarPedido(idPedido, permanente){
     // Borra todos los registros del pedido (incluyendo fotos)
     const all=this.getAll().filter(r=>r.idPedido!==idPedido&&r.id!==idPedido);
     this.saveAll(all);
+    // Borrado permanente (boton "Borrar pedido"): lo agregamos a la blacklist
+    // local para que nunca vuelva a aparecer, incluso si el aviso al GAS falla.
+    // (No se usa en el flujo de edicion, que reutiliza el mismo idPedido.)
+    if(permanente) BorradosStore.add(idPedido);
     // Notificar al GAS para marcar como borrado en el Sheet
     if(navigator.onLine){
       fetch(CONFIG.SCRIPT_URL,{
@@ -2273,7 +2295,7 @@ const VentasUI = {
 
   confirmarBorrar(idPedido){
     if(!confirm("⚠️ ¿Borrar este pedido? Esta acción no se puede deshacer.")) return;
-    Store.borrarPedido(idPedido);
+    Store.borrarPedido(idPedido, true);
     UI.refresh();this.render();this.renderDashboard();
     UI.toast("🗑 Pedido eliminado.");
   }
@@ -2612,6 +2634,13 @@ const RegistrosSync = {
       d.data.registros.forEach(row => {
         const id = row.recordId;
         if(!id) return;
+        // Nunca re-agregar (ni actualizar) un registro que el usuario borro
+        // localmente o que el GAS ya tiene marcado como borrado — evita que
+        // un pedido eliminado "reviva" en la proxima sincronizacion.
+        if(row.estadoEntrega === "borrado" || BorradosStore.has(row.idPedido)){
+          if(localById.has(id)) localById.delete(id);
+          return;
+        }
         const existente = localById.get(id);
         if(existente){
           if(existente.estadoEntrega !== row.estadoEntrega){
