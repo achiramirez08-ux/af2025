@@ -912,8 +912,8 @@ const Store = {
   markSynced(id){this.saveAll(this.getAll().map(r=>r.id===id?{...r,synced:true,lastError:null}:r))},
   markError(id,msg){this.saveAll(this.getAll().map(r=>r.id===id?{...r,attempts:(r.attempts||0)+1,lastError:msg}:r))},
   getPending(){return this.getAll().filter(r=>!r.synced)},
-  kpiVentas(){return this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto"&&r.estadoEntrega!=="borrado").reduce((s,r)=>s+(Number(r.monto)||0),0)},
-  pedidosUnicos(){return new Set(this.getAll().filter(r=>r.tipo==="Venta"&&r.idPedido).map(r=>r.idPedido)).size},
+  kpiVentas(divisa){return this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto"&&r.estadoEntrega!=="borrado"&&(!divisa||(r.divisa||"USD")===divisa)).reduce((s,r)=>s+(Number(r.monto)||0),0)},
+  pedidosUnicos(divisa){return new Set(this.getAll().filter(r=>r.tipo==="Venta"&&r.idPedido&&(!divisa||(r.divisa||"USD")===divisa)).map(r=>r.idPedido)).size},
   getPedidos(){
     // Agrupa registros de venta por idPedido, retorna lista de pedidos consolidados
     // (excluye registros marcados como "borrado" para que un pedido eliminado
@@ -977,9 +977,9 @@ const Store = {
       }).catch(()=>{});
     }
   },
-  topProductos(){
+  topProductos(divisa){
     const mapa={};
-    this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto"&&r.productoNormalizado).forEach(r=>{
+    this.getAll().filter(r=>r.tipo==="Venta"&&r.kind!=="foto"&&r.productoNormalizado&&(!divisa||(r.divisa||"USD")===divisa)).forEach(r=>{
       const k=r.productoNormalizado;mapa[k]=(mapa[k]||0)+r.monto;
     });
     return Object.entries(mapa).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -1546,8 +1546,11 @@ const VentasMes = {
   // Meses con datos reales (pasados con entregas ya facturadas, o futuros con
   // entregas ya programadas/pendientes). No se muestran meses vacíos sin
   // ningún pedido. Siempre se incluye el mes actual aunque esté en cero.
-  computeMonthly(){
-    const pedidos = Store.getPedidos().filter(p=>p.tipo==="Venta" && p.fechaEntrega);
+  computeMonthly(divisa){
+    // Filtra por divisa del pedido: sin esto, un pedido en Gs (ej. 15.000.000)
+    // se suma junto con pedidos en USD como si fuera el mismo numero, inflando
+    // el total del mes de forma completamente irreal.
+    const pedidos = Store.getPedidos().filter(p=>p.tipo==="Venta" && p.fechaEntrega && (!divisa||(p.divisa||"USD")===divisa));
     const porMes = {};
     pedidos.forEach(p=>{
       const mesKey = p.fechaEntrega.slice(0,7); // "YYYY-MM"
@@ -1576,7 +1579,7 @@ const VentasMes = {
     const cont = document.getElementById("dash-ventas-mes");
     if(!cont) return;
     const d = CONFIG.DIVISA_DEFAULT;
-    const meses = this.computeMonthly();
+    const meses = this.computeMonthly(d);
     cont.innerHTML = meses.map(m=>{
       const objetivo = this.getObjetivo(m.mesKey);
       const pct = objetivo ? Math.min(100, Math.round(m.total/objetivo*100)) : null;
@@ -1638,7 +1641,7 @@ const UI = {
     const todos=Store.getAll();
     const ventas=todos.filter(r=>r.tipo==="Venta"&&r.kind!=="foto");
     const presupuestos=todos.filter(r=>r.tipo==="Presupuesto"&&r.kind!=="foto");
-    const total=Store.kpiVentas(),pedidos=Store.pedidosUnicos(),ticket=pedidos?total/pedidos:0;
+    const total=Store.kpiVentas(d),pedidos=Store.pedidosUnicos(d),ticket=pedidos?total/pedidos:0;
     const btnD=document.getElementById("btn-divisa");if(btnD)btnD.textContent=d;
     document.getElementById("kpi-ventas").textContent=Utils.money(total,d);
     document.getElementById("dash-ventas").textContent=Utils.money(total,d);
@@ -1672,7 +1675,7 @@ const UI = {
     const chacoTotal=CLIENTES.filter(c=>c.zona==="Chaco").length;
     const zonaEl=document.getElementById("dash-zona-activos");if(zonaEl)zonaEl.textContent=`${chacoActivos} activos · ${chacoTotal} total`;
     // Top productos
-    const top=Store.topProductos();
+    const top=Store.topProductos(d);
     const tp=document.getElementById("dash-top-productos");
     tp.innerHTML=top.length?top.map(([n,m])=>`<li class="flex justify-between"><span class="truncate text-gray-300">${UI.escape(n)}</span><span class="tnum text-emerald-400 font-semibold ml-2 shrink-0">${Utils.money(m,d)}</span></li>`).join(""):'<li class="text-gray-500">Sin datos todavía</li>';
     // Lista actividad
@@ -1996,27 +1999,41 @@ const App = {
   },
   handleSubmit(e){
     e.preventDefault();
+    const btnGuard=document.getElementById("btn-guardar");
+    if(btnGuard&&btnGuard.disabled) return; // evita doble-submit por doble-tap
     const tipo=document.getElementById("form-tipo").value;
     const cliente=document.getElementById("input-cliente").value.trim();
     const notas=document.getElementById("input-notas").value.trim();
+    const divisaDefault=CONFIG.DIVISA_DEFAULT;
     let valid=true;
     if(cliente.length<2){document.getElementById("error-cliente").classList.remove("hidden");valid=false}
     else document.getElementById("error-cliente").classList.add("hidden");
 
     // Líneas con texto (producto escrito): todas deben tener cantidad > 0
     const lv=Lineas.items.filter(l=>l.texto.trim().length>0);
-    // Para VENTA: exige cantidad > 0. Para PRESUPUESTO: permite cantidad 0 (cotización sin precio)
-    const lc=lv.filter(l=>Utils.parseNum(l.cantidad)>0);
     const esVenta=tipo==="Venta";
+    // Para VENTA: exige cantidad > 0 Y precio > 0 (un precio en 0/negativo no es una venta real).
+    // Para PRESUPUESTO: permite cantidad 0 y precio 0 (cotización sin precio).
+    const lc=lv.filter(l=>Utils.parseNum(l.cantidad)>0&&(!esVenta||Utils.parseNum(l.precioUnitario)>0));
     if(!lv.length){document.getElementById("error-lineas").classList.remove("hidden");valid=false}
-    else if(esVenta&&lc.length!==lv.length){document.getElementById("error-lineas").textContent="Venta: ingresá cantidad y precio en cada producto.";document.getElementById("error-lineas").classList.remove("hidden");valid=false}
-    else{document.getElementById("error-lineas").classList.add("hidden");}
+    else if(esVenta&&lc.length!==lv.length){document.getElementById("error-lineas").textContent="Venta: ingresá cantidad y precio (mayor a 0) en cada producto.";document.getElementById("error-lineas").classList.remove("hidden");valid=false}
+    else{
+      // No permitir mezclar USD y Gs en el mismo pedido: los totales del pedido
+      // y del dashboard suman el monto crudo sin convertir, así que un pedido
+      // con líneas en dos divisas distintas arruina esa suma silenciosamente.
+      const divisasUsadas=new Set(lv.map(l=>l.divisa||divisaDefault));
+      if(divisasUsadas.size>1){
+        document.getElementById("error-lineas").textContent="No podés mezclar USD y Gs en el mismo pedido — elegí una sola divisa para todas las líneas.";
+        document.getElementById("error-lineas").classList.remove("hidden");valid=false;
+      } else {
+        document.getElementById("error-lineas").classList.add("hidden");
+      }
+    }
 
     if(!valid)return;
     const btn=document.getElementById("btn-guardar");btn.disabled=true;
     const editId=App._editandoIdPedido;
     const idPedido=editId||Utils.uuid(),createdAt=new Date().toISOString();
-    const divisaDefault=CONFIG.DIVISA_DEFAULT;
 
     if(editId){
       // Reemplazo: borra las líneas/foto anteriores de este pedido (local +
@@ -2046,7 +2063,7 @@ const App = {
     document.getElementById("input-fecha-entrega").value="";
     if(navigator.vibrate)navigator.vibrate([50,30,50]); // feedback háptico
     UI.toast(editId?`✏️ Pedido actualizado (${lv.length} producto(s)${Foto.dataUrl?" + foto":""}). Sincronizando…`:`✅ Guardado (${lv.length} producto(s)${Foto.dataUrl?" + foto":""}). Sincronizando…`);
-    btn.disabled=false;Sync.flushQueue();
+    setTimeout(()=>{btn.disabled=false;},700);Sync.flushQueue();
   },
   initNav(){
     document.querySelectorAll(".tab-btn").forEach(btn=>btn.addEventListener("click",()=>{
@@ -2179,7 +2196,7 @@ const VentasUI = {
     const esE=p.estadoEntrega==="entregado";
     const {badge,border}=this._estadoBadge(p,hoy,lunes,domingo);
     const monto=p.monto>0?(p.divisa==="PYG"?`Gs ${Math.round(p.monto).toLocaleString()}`:`$${p.monto.toFixed(2)}`):"—";
-    const lineas=p.lineas.slice(0,compact?2:3).map(l=>`<span class="text-[10px] text-gray-400 bg-gray-700/50 px-1.5 py-0.5 rounded">${l.producto||"?"} ${l.cantidad?`×${l.cantidad}`:""}</span>`).join(" ")
+    const lineas=p.lineas.slice(0,compact?2:3).map(l=>`<span class="text-[10px] text-gray-400 bg-gray-700/50 px-1.5 py-0.5 rounded">${UI.escape(l.producto||"?")} ${l.cantidad?`×${l.cantidad}`:""}</span>`).join(" ")
       +(p.lineas.length>(compact?2:3)?`<span class="text-[10px] text-gray-500">+${p.lineas.length-(compact?2:3)}</span>`:"");
     const fechas=`${p.fechaPedido?`<span class="text-[10px] text-gray-500">📅 Pedido: <b class="text-gray-400">${p.fechaPedido}</b></span>`:""}
       ${p.fechaEntrega?`<span class="text-[10px] text-gray-500">🚚 Entrega: <b class="${border.includes('red')?"text-red-400":border.includes('amber')?"text-amber-400":"text-gray-400"}">${p.fechaEntrega}</b></span>`:""}`;
@@ -2191,12 +2208,12 @@ const VentasUI = {
     </div>`;
     return `<div class="bg-gray-800/80 rounded-xl p-3 border ${border}">
       <div class="flex items-center justify-between gap-2 mb-1.5">
-        <div class="font-semibold text-sm truncate flex-1">${p.cliente}</div>
+        <div class="font-semibold text-sm truncate flex-1">${UI.escape(p.cliente)}</div>
         <div class="text-emerald-400 font-bold text-sm tnum shrink-0">${monto}</div>
       </div>
       <div class="flex flex-wrap items-center gap-1.5 mb-1.5">${badge}${fechas}</div>
       <div class="flex flex-wrap gap-1 mb-1">${lineas}</div>
-      ${p.notas&&!compact?`<div class="text-[10px] text-gray-500 italic truncate">"${p.notas.slice(0,60)}"</div>`:""}
+      ${p.notas&&!compact?`<div class="text-[10px] text-gray-500 italic truncate">"${UI.escape(p.notas.slice(0,60))}"</div>`:""}
       ${acciones}
     </div>`;
   },
@@ -2234,7 +2251,7 @@ const VentasUI = {
     if(alertasDiv){
       let ah="";
       if(vencidos.length) ah+=`<div class="bg-red-900/60 border border-red-500/40 rounded-xl px-3 py-2 text-xs flex items-center gap-2"><span class="text-base">🔴</span><span class="font-semibold text-red-300">${vencidos.length} entrega${vencidos.length>1?"s":""} VENCIDA${vencidos.length>1?"S":""} — requiere acción inmediata</span></div>`;
-      if(semana.length) ah+=`<div class="bg-amber-900/60 border border-amber-500/40 rounded-xl px-3 py-2 text-xs flex items-center gap-2"><span class="text-base">⚠️</span><span class="font-semibold text-amber-300">${semana.length} entrega${semana.length>1?"s":""} para esta semana</span><span class="text-amber-400 ml-1 truncate">${semana.map(p=>p.cliente.split(" ")[0]).join(", ")}</span></div>`;
+      if(semana.length) ah+=`<div class="bg-amber-900/60 border border-amber-500/40 rounded-xl px-3 py-2 text-xs flex items-center gap-2"><span class="text-base">⚠️</span><span class="font-semibold text-amber-300">${semana.length} entrega${semana.length>1?"s":""} para esta semana</span><span class="text-amber-400 ml-1 truncate">${semana.map(p=>UI.escape(p.cliente.split(" ")[0])).join(", ")}</span></div>`;
       alertasDiv.innerHTML=ah;
     }
 
